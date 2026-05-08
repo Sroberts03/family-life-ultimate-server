@@ -33,7 +33,3 @@
 ## Chore Management
 - Parents can create chores and assign them to family members
 - Chores can be given a title, description, due date, priority level (customizable by parents), type of chore which sets its color (customizable by parents), recurring chore (customizable by parents), notifications (customizable by parents)
-
-
-
-

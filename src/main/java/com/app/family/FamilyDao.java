@@ -30,14 +30,15 @@ public class FamilyDao {
 
     @Transactional
     public void requestJoin(String userId, String familyId, FamilyRole role) {
-        return;
+        String sql = "INSERT INTO join_family_requests (user_id, family_id, family_role) VALUES (?, ?, ?::family_role)";
+        jdbcTemplate.update(sql, UUID.fromString(userId), UUID.fromString(familyId), role.name().toLowerCase());
     }
 
     @Transactional
     public void createFamily(String userId, FamilyRole role) {
-        String sql = "INSERT INTO FAMILIES (owner_id) VALUES (?) RETURNING family_id";
+        String sql = "INSERT INTO families (owner_id) VALUES (?) RETURNING family_id";
         UUID familyId = jdbcTemplate.queryForObject(sql, UUID.class, UUID.fromString(userId));
-        String addUserSql = "INSERT INTO USER_FAMILIES (user_id, family_id, family_role) VALUES (?, ?, ?::family_role)";
+        String addUserSql = "INSERT INTO user_families (user_id, family_id, family_role) VALUES (?, ?, ?::family_role)";
         jdbcTemplate.update(addUserSql, UUID.fromString(userId), familyId, role.name().toLowerCase());
     }
 }

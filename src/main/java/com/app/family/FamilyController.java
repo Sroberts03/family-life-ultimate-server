@@ -1,9 +1,7 @@
 package com.app.family;
 
 import org.springframework.security.oauth2.jwt.Jwt;
-
 import java.util.List;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,11 +27,11 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/family")
-public class FamilyContoller {
+public class FamilyController {
 
     private final FamilyService familyService;
 
-    public FamilyContoller(FamilyService familyService) {
+    public FamilyController(FamilyService familyService) {
         this.familyService = familyService;
     }
 

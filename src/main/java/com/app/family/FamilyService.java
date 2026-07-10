@@ -128,7 +128,7 @@ public class FamilyService {
 
     private boolean userAllowedToSeeRequests(List<PersActivity>  context) {
         for (PersActivity activity : context) {
-            if (activity.getActivityName().equals("family_owner") || activity.getActivityName().equals("auth_family_user")) {
+            if (activity.getActivityName().equals("household_head") || activity.getActivityName().equals("authorized_user")) {
                 return true;
             }
         }

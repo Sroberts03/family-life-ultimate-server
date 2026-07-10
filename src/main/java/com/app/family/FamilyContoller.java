@@ -17,9 +17,11 @@ import com.app.BaseResponseDto;
 import com.app.family.dto.AcceptOrDenyRequestDto;
 import com.app.family.dto.CreateFamilyRequestDto;
 import com.app.family.dto.GetAuthFamiliesRes;
+import com.app.family.dto.GetFamilyMembers;
 import com.app.family.dto.GetJoinRequests;
 import com.app.family.dto.JoinFamilyRequestDto;
 import com.app.family.exceptions.OwnerMustBeAdultException;
+import com.app.family.types.FamilyMember;
 import com.app.family.types.JoinRequest;
 import com.app.family.types.TruncatedFamily;
 
@@ -86,4 +88,15 @@ public class FamilyContoller {
         GetAuthFamiliesRes response = new GetAuthFamiliesRes(families);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/get-members")
+    public ResponseEntity<GetFamilyMembers> getFamilyMembers(
+        @RequestParam("familyId") String familyId,
+        @AuthenticationPrincipal Jwt jwt
+    ) throws Exception {
+        List<FamilyMember> members = familyService.getAllFamilyMembers(familyId, jwt.getSubject());
+        GetFamilyMembers response = new GetFamilyMembers(members);
+        return ResponseEntity.ok(response);
+    }
+
 }

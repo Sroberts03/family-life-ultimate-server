@@ -1,9 +1,12 @@
 package com.app.family;
 
 import org.springframework.stereotype.Repository;
+
+import com.app.auth.types.PersActivity;
 import com.app.family.types.Family;
 import com.app.family.types.FamilyRole;
 import com.app.family.types.JoinRequest;
+import com.app.family.types.TruncatedFamilyMember;
 import com.app.family.types.TruncatedJoinRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.List;
@@ -87,15 +90,16 @@ public class FamilyDao {
         jdbcTemplate.update(sql, UUID.fromString(userId), UUID.fromString(familyId), role.name().toLowerCase());
     }
 
-    public String userFamilyContext(String userId, String familyId) {
+    public List<PersActivity> userFamilyContext(String userId, String familyId) {
         String sql = """
-                SELECT * from pers_activities pa
+                SELECT a.name as name from pers_activities pa
                 inner join activities a on pa.activity_id = a.id
                 where pa.user_id = ? and pa.family_id = ?;
                 """;
-        String req = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getString("name"), UUID.fromString(userId), UUID.fromString(familyId));
-        System.out.println(req);
-        return req;
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new PersActivity(
+            rs.getString("name"),
+            familyId
+        ), UUID.fromString(userId), UUID.fromString(familyId));
     }
 
     public List<JoinRequest> getJoinRequests(String familyId) {
@@ -158,5 +162,36 @@ public class FamilyDao {
             rs.getDate("created_at"),
             rs.getDate("updated_at")
         ), UUID.fromString(userId));
+    }
+
+    public List<TruncatedFamilyMember> getAllFamilyMembers(String familyId) {
+        String sql = """
+                SELECT
+                    user_id as userId,
+                    au.raw_user_meta_data as fullName,
+                    uf.family_role as role
+                FROM user_families as uf
+                JOIN auth.users as au ON uf.user_id = au.id
+                WHERE family_id = ?
+                """;
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new TruncatedFamilyMember(
+            rs.getString("userId"),
+            rs.getString("fullName"),
+            FamilyRole.valueOf(rs.getString("role").toUpperCase())
+        ), UUID.fromString(familyId));
+    }
+
+    public List<PersActivity> getAllPersonActivitiesForFamily(String userId, String familyId) {
+        String sql = """
+                SELECT
+                    a.name as activityName
+                FROM pers_activities as pa
+                JOIN activities a on a.id = pa.activity_id
+                WHERE user_id = ? and family_id = ?;
+                """;
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new PersActivity(
+            rs.getString("activityName"),
+            familyId
+        ), UUID.fromString(userId), UUID.fromString(familyId));
     }
 }

@@ -3,17 +3,20 @@ package com.app.family;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
+
+import com.app.auth.types.PersActivity;
 import com.app.family.exceptions.AlreadyMemberException;
 import com.app.family.exceptions.FamilyNotFoundException;
 import com.app.family.exceptions.OwnerMustBeAdultException;
 import com.app.family.exceptions.RequestDoesntExistException;
 import com.app.family.exceptions.UnauthorizedException;
 import com.app.family.types.Family;
+import com.app.family.types.FamilyMember;
 import com.app.family.types.FamilyRole;
 import com.app.family.types.JoinRequest;
 import com.app.family.types.TruncatedFamily;
+import com.app.family.types.TruncatedFamilyMember;
 import com.app.family.types.TruncatedJoinRequest;
-
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
@@ -55,7 +58,7 @@ public class FamilyService {
             throw new RequestDoesntExistException(requestId);
         }
         String familyId = familyDao.getRequestFamilyId(requestId);
-        String userContext = familyDao.userFamilyContext(userId, familyId);
+        List<PersActivity> userContext = familyDao.userFamilyContext(userId, familyId);
         boolean userAllowedToEditRequest = userAllowedToSeeRequests(userContext);
         if (!userAllowedToEditRequest) {
             throw new UnauthorizedException();
@@ -68,7 +71,7 @@ public class FamilyService {
     }
 
     public List<JoinRequest> getJoinRequests(String userId, String familyId) throws Exception {
-        String userContext = familyDao.userFamilyContext(userId, familyId);
+        List<PersActivity> userContext = familyDao.userFamilyContext(userId, familyId);
         boolean userAllowedToSeeRequests = userAllowedToSeeRequests(userContext);
         if (!userAllowedToSeeRequests) {
             throw new UnauthorizedException();
@@ -103,8 +106,33 @@ public class FamilyService {
         return truncatedOwnedFamilies;
     }
 
-    private boolean userAllowedToSeeRequests(String context) {
-        return context.contains("family_owner") | context.contains("auth_family_user");
+    public List<FamilyMember> getAllFamilyMembers(String familyId, String userId) throws Exception {
+        List<FamilyMember> familyMembers = new ArrayList<>();
+        boolean userInFamily = familyDao.userIsInFamily(userId, familyId);
+        if (!userInFamily) {
+            throw new UnauthorizedException();
+        }
+        boolean familyExists = familyDao.familyExists(familyId);
+        if (!familyExists) {
+            throw new FamilyNotFoundException(familyId);
+        }
+        List<TruncatedFamilyMember> members = familyDao.getAllFamilyMembers(familyId);
+        for (TruncatedFamilyMember member : members) {
+            String fullName = getFullName(member.getFullName());
+            List<PersActivity> activities = familyDao.getAllPersonActivitiesForFamily(member.getUserId(), familyId);
+            FamilyMember familyMember = new FamilyMember(member.getUserId(), fullName, member.getRole(), activities);
+            familyMembers.add(familyMember);
+        }
+        return familyMembers;
+    }
+
+    private boolean userAllowedToSeeRequests(List<PersActivity>  context) {
+        for (PersActivity activity : context) {
+            if (activity.getActivityName().equals("family_owner") || activity.getActivityName().equals("auth_family_user")) {
+                return true;
+            }
+        }
+        return false;
     }
     
     private String getFullName(String fullName) throws Exception {

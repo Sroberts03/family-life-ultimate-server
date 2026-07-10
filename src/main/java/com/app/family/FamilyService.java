@@ -104,7 +104,7 @@ public class FamilyService {
     }
 
     private boolean userAllowedToSeeRequests(String context) {
-        return context == "owner" | context == "authUser";
+        return context.contains("family_owner") | context.contains("auth_family_user");
     }
     
     private String getFullName(String fullName) throws Exception {

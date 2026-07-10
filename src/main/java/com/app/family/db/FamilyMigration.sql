@@ -1,3 +1,4 @@
+--July 9, 2026
 create type subscription_level as enum ('basic', 'premium');
 create type family_role as enum ('parent', 'child', 'other');
 

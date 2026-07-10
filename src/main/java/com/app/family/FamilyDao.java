@@ -89,26 +89,13 @@ public class FamilyDao {
 
     public String userFamilyContext(String userId, String familyId) {
         String sql = """
-                SELECT count(*)
-                FROM families as f
-                WHERE family_id = ? and owner_id = ?
+                SELECT * from pers_activities pa
+                inner join activities a on pa.activity_id = a.id
+                where pa.user_id = ? and pa.family_id = ?;
                 """;
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, UUID.fromString(familyId),
-                UUID.fromString(userId));
-        if (count > 0)
-            return "owner";
-
-        String sql2 = """
-                SELECT count(*)
-                FROM authorized_edit_family_users
-                where user_id = ? and family_id = ?
-                """;
-        Integer count2 = jdbcTemplate.queryForObject(sql2, Integer.class, UUID.fromString(userId),
-                UUID.fromString(familyId));
-        if (count2 > 0)
-            return "authUser";
-
-        return "unauthorized";
+        String req = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> rs.getString("name"), UUID.fromString(userId), UUID.fromString(familyId));
+        System.out.println(req);
+        return req;
     }
 
     public List<JoinRequest> getJoinRequests(String familyId) {
@@ -158,10 +145,10 @@ public class FamilyDao {
 
     public List<Family> getAuthFamilies(String userId) {
         String sql = """
-                SELECT
-                    *
-                FROM authorized_edit_family_users
-                WHERE user_id = ?
+                SELECT f.* FROM families f 
+                inner join pers_activities pa on f.family_id = pa.family_id
+                inner join activities a on a.id = pa.activity_id
+                where pa.user_id = ? and a.name = 'auth_family_user' or a.name = 'family owner'
                 """;
         return jdbcTemplate.query(sql, (rs, rowNum) -> new Family(
             rs.getString("family_id"),

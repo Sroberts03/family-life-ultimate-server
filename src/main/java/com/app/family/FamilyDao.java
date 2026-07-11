@@ -92,11 +92,18 @@ public class FamilyDao {
 
     public List<PersActivity> userFamilyContext(String userId, String familyId) {
         String sql = """
-                SELECT a.name as name from pers_activities pa
-                inner join activities a on pa.activity_id = a.id
-                where pa.user_id = ? and pa.family_id = ?;
+                SELECT
+                    a.id as activityId,
+                    a.name as name 
+                FROM
+                    pers_activities pa
+                JOIN activities a on pa.activity_id = a.id
+                WHERE 
+                    pa.user_id = ? 
+                    and pa.family_id = ?;
                 """;
         return jdbcTemplate.query(sql, (rs, rowNum) -> new PersActivity(
+            rs.getInt("activityId"),
             rs.getString("name"),
             familyId
         ), UUID.fromString(userId), UUID.fromString(familyId));
@@ -152,7 +159,7 @@ public class FamilyDao {
                 SELECT f.* FROM families f 
                 inner join pers_activities pa on f.family_id = pa.family_id
                 inner join activities a on a.id = pa.activity_id
-                where pa.user_id = ? and a.name = 'auth_family_user' or a.name = 'family owner'
+                where pa.user_id = ? and (a.name = 'authorized_user' or a.name = 'household_head')
                 """;
         return jdbcTemplate.query(sql, (rs, rowNum) -> new Family(
             rs.getString("family_id"),
@@ -184,12 +191,14 @@ public class FamilyDao {
     public List<PersActivity> getAllPersonActivitiesForFamily(String userId, String familyId) {
         String sql = """
                 SELECT
+                    a.id as activityId,
                     a.name as activityName
                 FROM pers_activities as pa
                 JOIN activities a on a.id = pa.activity_id
                 WHERE user_id = ? and family_id = ?;
                 """;
         return jdbcTemplate.query(sql, (rs, rowNum) -> new PersActivity(
+            rs.getInt("activityId"),
             rs.getString("activityName"),
             familyId
         ), UUID.fromString(userId), UUID.fromString(familyId));

@@ -41,3 +41,5 @@ insert into activities (name, description) values
 insert into activities (name, description) values
 ('edit_chores','can edit the family chores');
 
+ALTER TABLE pers_activities ADD CONSTRAINT pers_activities_unique UNIQUE (user_id, family_id, activity_id);
+

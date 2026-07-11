@@ -1,4 +1,4 @@
-package com.app.family.exceptions;
+package com.app.globalExceptions;
 
 import com.app.BaseException;
 import org.springframework.http.HttpStatus;

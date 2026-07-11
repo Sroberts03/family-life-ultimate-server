@@ -9,7 +9,6 @@ import com.app.family.exceptions.AlreadyMemberException;
 import com.app.family.exceptions.FamilyNotFoundException;
 import com.app.family.exceptions.OwnerMustBeAdultException;
 import com.app.family.exceptions.RequestDoesntExistException;
-import com.app.family.exceptions.UnauthorizedException;
 import com.app.family.types.Family;
 import com.app.family.types.FamilyMember;
 import com.app.family.types.FamilyRole;
@@ -19,6 +18,7 @@ import com.app.family.types.TruncatedFamilyMember;
 import com.app.family.types.TruncatedJoinRequest;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import com.app.globalExceptions.UnauthorizedException;
 
 @Service
 public class FamilyService {
@@ -94,15 +94,12 @@ public class FamilyService {
         for (Family ownedFamily : ownedFamilies) {
             truncatedOwnedFamilies.add(new TruncatedFamily(ownedFamily.getFamilyId(), ownedFamily.getFamilyName()));
         }
-
         List<Family> authFamilies = familyDao.getAuthFamilies(userId);
         List<TruncatedFamily> truncatedAuthFamilies = new ArrayList<>();
         for (Family authFamily : authFamilies) {
             truncatedAuthFamilies.add(new TruncatedFamily(authFamily.getFamilyId(), authFamily.getFamilyName()));
         }
-
         truncatedOwnedFamilies.addAll(truncatedAuthFamilies);
-        System.out.println(truncatedOwnedFamilies.toString());
         return truncatedOwnedFamilies;
     }
 

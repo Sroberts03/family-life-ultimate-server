@@ -89,18 +89,12 @@ public class FamilyService {
     }
 
     public List<TruncatedFamily> getAllAuthFamilies(String userId) {
-        List<Family> ownedFamilies = familyDao.getOwnedFamilies(userId);
-        List<TruncatedFamily> truncatedOwnedFamilies = new ArrayList<>();
-        for (Family ownedFamily : ownedFamilies) {
-            truncatedOwnedFamilies.add(new TruncatedFamily(ownedFamily.getFamilyId(), ownedFamily.getFamilyName()));
-        }
         List<Family> authFamilies = familyDao.getAuthFamilies(userId);
         List<TruncatedFamily> truncatedAuthFamilies = new ArrayList<>();
         for (Family authFamily : authFamilies) {
             truncatedAuthFamilies.add(new TruncatedFamily(authFamily.getFamilyId(), authFamily.getFamilyName()));
         }
-        truncatedOwnedFamilies.addAll(truncatedAuthFamilies);
-        return truncatedOwnedFamilies;
+        return truncatedAuthFamilies;
     }
 
     public List<FamilyMember> getAllFamilyMembers(String familyId, String userId) throws Exception {

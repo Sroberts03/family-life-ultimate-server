@@ -4,6 +4,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -94,6 +95,18 @@ public class FamilyController {
     ) throws Exception {
         List<FamilyMember> members = familyService.getAllFamilyMembers(familyId, jwt.getSubject());
         GetFamilyMembers response = new GetFamilyMembers(members);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/remove-member")
+    public ResponseEntity<BaseResponseDto> removeMember(
+        @RequestParam("familyId") String familyId,
+        @RequestParam("userId") String userId,
+        @AuthenticationPrincipal Jwt jwt
+    ) throws Exception {
+        familyService.removeMember(jwt.getSubject(), familyId, userId);
+        BaseResponseDto response = new BaseResponseDto();
+        response.getBody().put("message", "Member removed successfully");
         return ResponseEntity.ok(response);
     }
 

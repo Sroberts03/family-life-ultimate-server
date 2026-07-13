@@ -203,4 +203,33 @@ public class FamilyDao {
             familyId
         ), UUID.fromString(userId), UUID.fromString(familyId));
     }
+
+    public void removeUserFromFamily(String userId, String familyId) {
+        String sql = """
+                DELETE FROM 
+                    user_families 
+                WHERE 
+                    user_id = ? 
+                    AND family_id = ?;
+                """;
+        jdbcTemplate.update(sql, UUID.fromString(userId), UUID.fromString(familyId));
+
+        String sql2 = """
+                DELETE FROM 
+                    pers_activities 
+                WHERE 
+                    user_id = ? 
+                    AND family_id = ?;
+                """;
+        jdbcTemplate.update(sql2, UUID.fromString(userId), UUID.fromString(familyId));
+
+        String sql3 = """
+                DELETE FROM
+                    join_family_requests
+                WHERE
+                    user_id = ?
+                    AND family_id = ?;
+                """;
+        jdbcTemplate.update(sql3, UUID.fromString(userId), UUID.fromString(familyId));
+    }
 }

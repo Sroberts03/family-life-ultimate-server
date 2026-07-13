@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.app.auth.types.PersActivity;
 import com.app.family.exceptions.AlreadyMemberException;
 import com.app.family.exceptions.FamilyNotFoundException;
+import com.app.family.exceptions.MemberNotFoundException;
 import com.app.family.exceptions.OwnerMustBeAdultException;
 import com.app.family.exceptions.RequestDoesntExistException;
 import com.app.family.types.Family;
@@ -59,7 +60,7 @@ public class FamilyService {
         }
         String familyId = familyDao.getRequestFamilyId(requestId);
         List<PersActivity> userContext = familyDao.userFamilyContext(userId, familyId);
-        boolean userAllowedToEditRequest = userAllowedToSeeRequests(userContext);
+        boolean userAllowedToEditRequest = userAllowedAuthAction(userContext);
         if (!userAllowedToEditRequest) {
             throw new UnauthorizedException();
         }
@@ -72,8 +73,8 @@ public class FamilyService {
 
     public List<JoinRequest> getJoinRequests(String userId, String familyId) throws Exception {
         List<PersActivity> userContext = familyDao.userFamilyContext(userId, familyId);
-        boolean userAllowedToSeeRequests = userAllowedToSeeRequests(userContext);
-        if (!userAllowedToSeeRequests) {
+        boolean userAllowedAuthAction = userAllowedAuthAction(userContext);
+        if (!userAllowedAuthAction) {
             throw new UnauthorizedException();
         }
         boolean familyExists = familyDao.familyExists(familyId);
@@ -81,7 +82,7 @@ public class FamilyService {
             throw new FamilyNotFoundException(familyId);
         }
         List<JoinRequest> requests = familyDao.getJoinRequests(familyId);
-        for(JoinRequest request : requests) {
+        for (JoinRequest request : requests) {
             String fullName = getFullName(request.getFullName());
             request.setFullName(fullName);
         }
@@ -117,15 +118,47 @@ public class FamilyService {
         return familyMembers;
     }
 
-    private boolean userAllowedToSeeRequests(List<PersActivity>  context) {
+    public void removeMember(String userId, String familyId, String memberId) throws Exception {
+        boolean userInFamily = familyDao.userIsInFamily(userId, familyId);
+        if (!userInFamily) {
+            throw new UnauthorizedException();
+        }
+        boolean familyExists = familyDao.familyExists(familyId);
+        if (!familyExists) {
+            throw new FamilyNotFoundException(familyId);
+        }
+        if (userId.equals(memberId)) {
+            familyDao.removeUserFromFamily(userId, familyId);
+            return;
+        }
+        boolean memberInFamily = familyDao.userIsInFamily(memberId, familyId);
+        if (!memberInFamily) {
+            throw new MemberNotFoundException(memberId, familyId);
+        }
+        List<PersActivity> userContext = familyDao.userFamilyContext(userId, familyId);
+        boolean userAllowedToRemoveMembers = userAllowedAuthAction(userContext);
+        if (!userAllowedToRemoveMembers) {
+            throw new UnauthorizedException();
+        }
+        List<PersActivity> memberContext = familyDao.userFamilyContext(memberId, familyId);
+        for (PersActivity activity : memberContext) {
+            if (activity.getActivityName().equals("household_head")) {
+                throw new UnauthorizedException();
+            }
+        }
+        familyDao.removeUserFromFamily(memberId, familyId);
+    }
+
+    private boolean userAllowedAuthAction(List<PersActivity> context) {
         for (PersActivity activity : context) {
-            if (activity.getActivityName().equals("household_head") || activity.getActivityName().equals("authorized_user")) {
+            if (activity.getActivityName().equals("household_head")
+                    || activity.getActivityName().equals("authorized_user")) {
                 return true;
             }
         }
         return false;
     }
-    
+
     private String getFullName(String fullName) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree(fullName);

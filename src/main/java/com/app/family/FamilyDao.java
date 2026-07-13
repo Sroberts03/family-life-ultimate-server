@@ -117,7 +117,7 @@ public class FamilyDao {
                     join_family_requests.family_id as familyId,
                     join_family_requests.family_role as familyRole,
                     join_family_requests.created_at as createdAt,
-                    a.raw_user_meta_data as fullName
+                    a.raw_user_meta_data->>'display_name' as fullName
                 FROM join_family_requests
                 JOIN auth.users as a ON join_family_requests.user_id = a.id
                 WHERE join_family_requests.family_id = ? and accepted is null
@@ -175,7 +175,7 @@ public class FamilyDao {
         String sql = """
                 SELECT
                     user_id as userId,
-                    au.raw_user_meta_data as fullName,
+                    au.raw_user_meta_data->>'display_name' as fullName,
                     uf.family_role as role
                 FROM user_families as uf
                 JOIN auth.users as au ON uf.user_id = au.id

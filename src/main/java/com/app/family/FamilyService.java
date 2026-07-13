@@ -17,8 +17,6 @@ import com.app.family.types.JoinRequest;
 import com.app.family.types.TruncatedFamily;
 import com.app.family.types.TruncatedFamilyMember;
 import com.app.family.types.TruncatedJoinRequest;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 import com.app.globalExceptions.UnauthorizedException;
 
 @Service
@@ -82,10 +80,6 @@ public class FamilyService {
             throw new FamilyNotFoundException(familyId);
         }
         List<JoinRequest> requests = familyDao.getJoinRequests(familyId);
-        for (JoinRequest request : requests) {
-            String fullName = getFullName(request.getFullName());
-            request.setFullName(fullName);
-        }
         return requests;
     }
 
@@ -110,9 +104,8 @@ public class FamilyService {
         }
         List<TruncatedFamilyMember> members = familyDao.getAllFamilyMembers(familyId);
         for (TruncatedFamilyMember member : members) {
-            String fullName = getFullName(member.getFullName());
             List<PersActivity> activities = familyDao.getAllPersonActivitiesForFamily(member.getUserId(), familyId);
-            FamilyMember familyMember = new FamilyMember(member.getUserId(), fullName, member.getRole(), activities);
+            FamilyMember familyMember = new FamilyMember(member.getUserId(), member.getFullName(), member.getRole(), activities);
             familyMembers.add(familyMember);
         }
         return familyMembers;
@@ -157,12 +150,5 @@ public class FamilyService {
             }
         }
         return false;
-    }
-
-    private String getFullName(String fullName) throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode node = mapper.readTree(fullName);
-        String displayName = node.get("display_name").asString();
-        return displayName;
     }
 }

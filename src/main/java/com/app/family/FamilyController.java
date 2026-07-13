@@ -23,7 +23,6 @@ import com.app.family.exceptions.OwnerMustBeAdultException;
 import com.app.family.types.FamilyMember;
 import com.app.family.types.JoinRequest;
 import com.app.family.types.TruncatedFamily;
-
 import jakarta.validation.Valid;
 
 @RestController

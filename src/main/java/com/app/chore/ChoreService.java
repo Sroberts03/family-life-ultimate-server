@@ -3,8 +3,10 @@ package com.app.chore;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.Nullable;
 import com.app.auth.types.PersActivity;
@@ -121,6 +123,35 @@ public class ChoreService {
             throw new UnauthorizedException();
         }
         choreDao.deleteChore(choreId, thisAndFuture);
+    }
+
+    public Chore updateChoreAssignees(String userId, int choreId, Set<String> assigneeIds) throws Exception {
+        boolean choreExists = choreDao.choreExists(choreId);
+        if (!choreExists) {
+            throw new ChoreNotFoundException(choreId);
+        }
+        String familyId = choreDao.getFamilyIdFromChoreId(choreId);
+        if (familyId == null) {
+            throw new ChoreNotFoundException(choreId);
+        }
+        boolean userInFamily = familyDao.userIsInFamily(userId, familyId);
+        if (!userInFamily) {
+            throw new UnauthorizedException();
+        }
+        List<PersActivity> userContext = familyDao.userFamilyContext(userId, familyId);
+        boolean userCanEdit = userCanEdit(userContext);
+        if (!userCanEdit) {
+            throw new UnauthorizedException();
+        }
+        Set<String> currentAssignees = choreDao.getChoreAssignees(choreId);
+        Set<String> newAssignees = new HashSet<>(assigneeIds);
+        Set<String> addedAssignees = new HashSet<>(newAssignees);
+        addedAssignees.removeAll(currentAssignees);
+        Set<String> removedAssignees = new HashSet<>(currentAssignees);
+        removedAssignees.removeAll(newAssignees);
+        choreDao.addChoreAssignees(choreId, addedAssignees);
+        choreDao.removeChoreAssignees(choreId, removedAssignees);
+        return choreDao.getChoreFromId(choreId);
     }
 
     private boolean userCanEdit(List<PersActivity> userActivities) {

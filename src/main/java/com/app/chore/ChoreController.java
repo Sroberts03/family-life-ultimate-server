@@ -19,6 +19,8 @@ import com.app.chore.dto.CreateChoreReq;
 import com.app.chore.dto.CreateChoreRes;
 import com.app.chore.dto.GetAllChoresRes;
 import com.app.chore.dto.MarkChoreCompleteReqDto;
+import com.app.chore.dto.UpdateChoreAssigneesReqDto;
+import com.app.chore.dto.UpdateChoreAssignmentsDtoRes;
 import com.app.chore.types.Chore;
 import jakarta.validation.Valid;
 
@@ -82,6 +84,15 @@ public class ChoreController {
         BaseResponseDto response = new BaseResponseDto();
         response.getBody().put("message", "Chore deleted successfully");
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/update-chore-assignees")
+    public ResponseEntity<UpdateChoreAssignmentsDtoRes> updateChoreAssignees(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody @Valid UpdateChoreAssigneesReqDto body) throws Exception {
+        Chore chore = choreService.updateChoreAssignees(jwt.getSubject(), body.choreId(), body.choreAssigneeIds());
+        UpdateChoreAssignmentsDtoRes res = new UpdateChoreAssignmentsDtoRes(chore);
+        return ResponseEntity.ok(res);
     }
 
 }

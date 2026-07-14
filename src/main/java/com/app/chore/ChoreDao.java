@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -250,7 +251,7 @@ public class ChoreDao {
                     """;
 
             jdbcTemplate.update(sql2,LocalDate.now().minusDays(1), choreId);
-            
+
             String sql = """
                     DELETE FROM
                         chores c
@@ -267,6 +268,38 @@ public class ChoreDao {
                     """;
             jdbcTemplate.update(sql, choreId);
         }
+    }
+
+    public Set<String> getChoreAssignees(int choreId) {
+        String sql = """
+                SELECT
+                    user_id
+                FROM
+                    user_chore
+                WHERE
+                    chore_id = ?
+                """;
+
+        List<String> assigneesList = jdbcTemplate.queryForList(sql, String.class, choreId);
+        return new HashSet<>(assigneesList);
+    }
+
+    public void addChoreAssignees(int choreId, Set<String> assigneeIds) {
+        if (assigneeIds == null || assigneeIds.isEmpty()) return;
+        String sql = "INSERT INTO user_chore (chore_id, user_id) VALUES (?, ?)";
+        List<Object[]> batchArgs = assigneeIds.stream()
+                .map(userId -> new Object[]{choreId, UUID.fromString(userId)})
+                .collect(Collectors.toList());
+        jdbcTemplate.batchUpdate(sql, batchArgs);
+    }
+
+    public void removeChoreAssignees(int choreId, Set<String> assigneeIds) {
+        if (assigneeIds == null || assigneeIds.isEmpty()) return;
+        String sql = "DELETE FROM user_chore WHERE chore_id = ? AND user_id = ?";
+        List<Object[]> batchArgs = assigneeIds.stream()
+                .map(userId -> new Object[]{choreId, UUID.fromString(userId)})
+                .collect(Collectors.toList());
+        jdbcTemplate.batchUpdate(sql, batchArgs);
     }
         
 }

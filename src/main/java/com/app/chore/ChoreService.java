@@ -85,6 +85,31 @@ public class ChoreService {
         return choreDao.getChoreFromTemplateIdAndDueDate(choreTemplateId, LocalDate.parse(startDate));
     }
 
+    public void deleteChore(
+        String userId,
+        int choreId,
+        boolean thisAndFuture
+    ) throws Exception {
+        boolean choreExists = choreDao.choreExists(choreId);
+        if (!choreExists) {
+            throw new ChoreNotFoundException(choreId);
+        }
+        String familyId = choreDao.getFamilyIdFromChoreId(choreId);
+        if (familyId == null) {
+            throw new ChoreNotFoundException(choreId);
+        }
+        boolean userInFamily = familyDao.userIsInFamily(userId, familyId);
+        if (!userInFamily) {
+            throw new UnauthorizedException();
+        }
+        List<PersActivity> userContext = familyDao.userFamilyContext(userId, familyId);
+        boolean userCanDeleteChore = userCanEdit(userContext);
+        if (!userCanDeleteChore) {
+            throw new UnauthorizedException();
+        }
+        choreDao.deleteChore(choreId, thisAndFuture);
+    }
+
     private boolean userCanEdit(List<PersActivity> userActivities) {
         for (PersActivity activity : userActivities) {
             if (activity.getActivityName().equals("household_head")

@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.app.chore.types.Chore;
 import jakarta.annotation.Nullable;
 
@@ -231,4 +233,37 @@ public class ChoreDao {
                     assigneeNames);
         }, choreId);
     }
+
+    @Transactional
+    public void deleteChore(int choreId, boolean thisAndFuture) {
+        if (thisAndFuture) {
+            String sql2 = """
+                    UPDATE 
+                        chore_templates ct
+                    SET 
+                        end_date = ?
+                    FROM chores c
+                    WHERE c.id = ? and ct.id = c.chore_id;
+                    """;
+
+            jdbcTemplate.update(sql2,LocalDate.now().minusDays(1), choreId);
+            
+            String sql = """
+                    DELETE FROM
+                        chores c
+                    USING
+                        chore_templates ct
+                    WHERE c.id = ? or c.chore_id = ct.id and due_date > ?;
+                    """;
+            jdbcTemplate.update(sql, choreId, LocalDate.now().minusDays(1));
+        } else {
+            String sql = """
+                    DELETE FROM
+                        chores
+                    WHERE id = ?;
+                    """;
+            jdbcTemplate.update(sql, choreId);
+        }
+    }
+        
 }

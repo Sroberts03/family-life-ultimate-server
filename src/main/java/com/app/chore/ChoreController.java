@@ -6,6 +6,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -68,6 +69,18 @@ public class ChoreController {
             body.endDate()
         );
         CreateChoreRes response = new CreateChoreRes(chore);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<BaseResponseDto> deleteChore(
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestParam("choreId") int choreId,
+        @RequestParam("thisAndFuture") boolean thisAndFuture
+    ) throws Exception {
+        choreService.deleteChore(jwt.getSubject(), choreId, thisAndFuture);
+        BaseResponseDto response = new BaseResponseDto();
+        response.getBody().put("message", "Chore deleted successfully");
         return ResponseEntity.ok(response);
     }
 

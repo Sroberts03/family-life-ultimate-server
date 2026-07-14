@@ -109,4 +109,13 @@ public class FamilyController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/get-all-families")
+    public ResponseEntity<GetAuthFamiliesRes> getAllFamilies(
+        @AuthenticationPrincipal Jwt jwt
+    ) {
+        List<TruncatedFamily> families = familyService.getAllFamilies(jwt.getSubject());
+        GetAuthFamiliesRes response = new GetAuthFamiliesRes(families);
+        return ResponseEntity.ok(response);
+    }
+
 }

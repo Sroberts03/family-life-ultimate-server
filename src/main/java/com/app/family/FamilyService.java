@@ -142,6 +142,15 @@ public class FamilyService {
         familyDao.removeUserFromFamily(memberId, familyId);
     }
 
+    public List<TruncatedFamily> getAllFamilies(String userId) {
+        List<TruncatedFamily> truncatedAuthFamilies = new ArrayList<>();
+        List<Family> authFamilies = familyDao.getFamiliesByUserId(userId);
+        for (Family authFamily : authFamilies) {
+            truncatedAuthFamilies.add(new TruncatedFamily(authFamily.getFamilyId(), authFamily.getFamilyName()));
+        }
+        return truncatedAuthFamilies;
+    }
+
     private boolean userAllowedAuthAction(List<PersActivity> context) {
         for (PersActivity activity : context) {
             if (activity.getActivityName().equals("household_head")

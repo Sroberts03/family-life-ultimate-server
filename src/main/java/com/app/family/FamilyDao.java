@@ -232,4 +232,20 @@ public class FamilyDao {
                 """;
         jdbcTemplate.update(sql3, UUID.fromString(userId), UUID.fromString(familyId));
     }
+
+    public List<Family> getFamiliesByUserId(String userId) {
+        String sql = """
+                SELECT f.* FROM families f 
+                JOIN user_families uf on f.family_id = uf.family_id
+                where uf.user_id = ?;
+                """;
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new Family(
+            rs.getString("family_id"),
+            rs.getString("family_name"),
+            rs.getString("owner_id"),
+            rs.getString("subscription_level"),
+            rs.getDate("created_at"),
+            rs.getDate("updated_at")
+        ), UUID.fromString(userId));
+    }
 }

@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
+import jakarta.annotation.Nullable;
+import com.app.auth.types.PersActivity;
 import com.app.chore.exceptions.ChoreNotFoundException;
 import com.app.chore.types.Chore;
 import com.app.family.FamilyDao;
@@ -54,6 +56,44 @@ public class ChoreService {
             throw new UnauthorizedException();
         }
         choreDao.markChoreComplete(dateCompleted, choreId);
+    }
+
+    public Chore createChore(
+        String userId, 
+        String familyId, 
+        String name, 
+        String description, 
+        String recurring, 
+        String startDate, 
+        @Nullable String endDate
+    ) throws Exception {
+        System.out.println("Reached here");
+        boolean familyExistsCheck = familyDao.familyExists(familyId);
+        if (!familyExistsCheck) {
+            throw new FamilyNotFoundException(familyId);
+        }
+        boolean userInFamily = familyDao.userIsInFamily(userId, familyId);
+        if (!userInFamily) {
+            throw new UnauthorizedException();
+        }
+        List<PersActivity> userContext = familyDao.userFamilyContext(userId, familyId);
+        boolean userCanAddChore = userCanEdit(userContext);
+        if (!userCanAddChore) {
+            throw new UnauthorizedException();
+        }
+        int choreTemplateId = choreDao.createChoreTemplate(familyId, name, description, recurring, LocalDate.parse(startDate), endDate != "" ? LocalDate.parse(endDate) : null);
+        return choreDao.getChoreFromTemplateIdAndDueDate(choreTemplateId, LocalDate.parse(startDate));
+    }
+
+    private boolean userCanEdit(List<PersActivity> userActivities) {
+        for (PersActivity activity : userActivities) {
+            if (activity.getActivityName().equals("household_head")
+                    || activity.getActivityName().equals("authorized_user")
+                    || activity.getActivityName().equals("edit_chores")) {
+                return true;
+            }
+        }
+        return false;
     }
     
 }

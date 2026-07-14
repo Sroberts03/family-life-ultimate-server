@@ -7,12 +7,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.app.BaseResponseDto;
+import com.app.chore.dto.CreateChoreReq;
+import com.app.chore.dto.CreateChoreRes;
 import com.app.chore.dto.GetAllChoresRes;
 import com.app.chore.dto.MarkChoreCompleteReqDto;
 import com.app.chore.types.Chore;
@@ -47,6 +50,24 @@ public class ChoreController {
         choreService.markChoreComplete(jwt.getSubject(), body.dateCompleted(), body.choreId());
         BaseResponseDto response = new BaseResponseDto();
         response.getBody().put("message", "Chore marked complete successfully");
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<CreateChoreRes> createChore(
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestBody @Valid CreateChoreReq body
+    ) throws Exception {
+        Chore chore = choreService.createChore(
+            jwt.getSubject(), 
+            body.familyId(), 
+            body.name(), 
+            body.description(), 
+            body.recurring(), 
+            body.startDate(), 
+            body.endDate()
+        );
+        CreateChoreRes response = new CreateChoreRes(chore);
         return ResponseEntity.ok(response);
     }
 

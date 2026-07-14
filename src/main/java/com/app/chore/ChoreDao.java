@@ -3,6 +3,9 @@ package com.app.chore;
 import java.time.LocalDate;
 import java.sql.Array;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -50,11 +53,11 @@ public class ChoreDao {
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             Array assigneeIdsArray = rs.getArray("assignee_ids");
-            String[] assigneeIds = new String[0];
+            Set<String> assigneeIds = new HashSet<>();
             if (assigneeIdsArray != null) {
                 UUID[] assigneeUuids = (UUID[]) assigneeIdsArray.getArray();
                 if (assigneeUuids.length > 0 && assigneeUuids[0] != null) {
-                    assigneeIds = Arrays.stream(assigneeUuids).map(UUID::toString).toArray(String[]::new);
+                    assigneeIds = Arrays.stream(assigneeUuids).map(UUID::toString).collect(Collectors.toSet());
                 }
             }
 
@@ -151,11 +154,11 @@ public class ChoreDao {
 
         return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
             Array assigneeIdsArray = rs.getArray("assignee_ids");
-            String[] assigneeIds = new String[0];
+            Set<String> assigneeIds = new HashSet<>();
             if (assigneeIdsArray != null) {
                 UUID[] assigneeUuids = (UUID[]) assigneeIdsArray.getArray();
                 if (assigneeUuids.length > 0 && assigneeUuids[0] != null) {
-                    assigneeIds = Arrays.stream(assigneeUuids).map(UUID::toString).toArray(String[]::new);
+                    assigneeIds = Arrays.stream(assigneeUuids).map(UUID::toString).collect(Collectors.toSet());
                 }
             }
 
@@ -206,11 +209,11 @@ public class ChoreDao {
 
         return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
             Array assigneeIdsArray = rs.getArray("assignee_ids");
-            String[] assigneeIds = new String[0];
+            Set<String> assigneeIds = new HashSet<>();
             if (assigneeIdsArray != null) {
                 UUID[] assigneeUuids = (UUID[]) assigneeIdsArray.getArray();
                 if (assigneeUuids.length > 0 && assigneeUuids[0] != null) {
-                    assigneeIds = Arrays.stream(assigneeUuids).map(UUID::toString).toArray(String[]::new);
+                    assigneeIds = Arrays.stream(assigneeUuids).map(UUID::toString).collect(Collectors.toSet());
                 }
             }
 

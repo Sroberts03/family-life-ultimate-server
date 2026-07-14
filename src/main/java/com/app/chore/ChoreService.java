@@ -34,11 +34,24 @@ public class ChoreService {
         if (!userInFamily) {
             throw new UnauthorizedException();
         }
+        List<PersActivity> userContext = familyDao.userFamilyContext(userId, familyId);
+        boolean userCanViewAllChores = userCanEdit(userContext);
         List<Chore> chores = choreDao.getAllChoresForFamilyForDate(familyId, date);
         Map<Integer, Chore> choresMap = new HashMap<>();
-        for (Chore chore : chores) {
-            choresMap.put(chore.getId(), chore);
+        if (userCanViewAllChores) {
+            for (Chore chore : chores) {
+                choresMap.put(chore.getId(), chore);
+            }
         }
+        if (!userCanViewAllChores) {
+            for (Chore chore : chores) {
+                if (chore.getAssigneeIds() != null 
+                    && chore.getAssigneeIds().contains(userId)) {
+                    choresMap.put(chore.getId(), chore);
+                }
+            }
+        }
+        
         return choresMap;
     }
 

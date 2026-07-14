@@ -1,6 +1,7 @@
 package com.app.chore.types;
 
 import java.util.Date;
+import java.util.Set;
 
 public class Chore {
     private int id;
@@ -8,10 +9,10 @@ public class Chore {
     private String description;
     private Date dueDate;
     private Date dateCompleted;
-    private String[] assigneeIds;
+    private Set<String> assigneeIds;
     private String[] assigneeNames;
 
-    public Chore(int id, String name, String description, Date dueDate, Date dateCompleted, String[] assigneeIds, String[] assigneeNames){
+    public Chore(int id, String name, String description, Date dueDate, Date dateCompleted, Set<String> assigneeIds, String[] assigneeNames){
         this.id = id;
         this.name = name;
         this.description = description;
@@ -61,11 +62,11 @@ public class Chore {
         this.dateCompleted = dateCompleted;
     }
 
-    public String[] getAssigneeIds() {
+    public Set<String> getAssigneeIds() {
         return assigneeIds;
     }
 
-    public void setAssigneeIds(String[] assigneeIds) {
+    public void setAssigneeIds(Set<String> assigneeIds) {
         this.assigneeIds = assigneeIds;
     }
 

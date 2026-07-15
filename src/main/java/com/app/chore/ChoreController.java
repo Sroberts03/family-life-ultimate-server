@@ -50,6 +50,7 @@ public class ChoreController {
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid MarkChoreCompleteReqDto body
     ) throws Exception {
+        System.out.println("date completed: " + body.dateCompleted());
         choreService.markChoreComplete(jwt.getSubject(), body.dateCompleted(), body.choreId());
         BaseResponseDto response = new BaseResponseDto();
         response.getBody().put("message", "Chore marked complete successfully");

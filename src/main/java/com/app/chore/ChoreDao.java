@@ -14,6 +14,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.app.chore.dto.CreateChoreReq;
 import com.app.chore.types.Chore;
 import jakarta.annotation.Nullable;
 
@@ -301,5 +302,54 @@ public class ChoreDao {
                 .collect(Collectors.toList());
         jdbcTemplate.batchUpdate(sql, batchArgs);
     }
-        
+
+    public CreateChoreReq getInfoChoreFromId(int choreId) {
+        String sql = """
+                SELECT
+                    ct.family_id as "familyId",
+                    ct.name as "name",
+                    ct.description as "description",
+                    ct.recurring as "recurring",
+                    ct.start_date as "startDate",
+                    ct.end_date as "endDate"
+                FROM
+                    chores as c
+                JOIN chore_templates as ct on c.chore_id = ct.id
+                WHERE c.id = ?
+                """;
+
+        return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
+            return new CreateChoreReq(
+                rs.getString("familyId"),
+                rs.getString("name"),
+                rs.getString("description"),
+                rs.getString("recurring"),
+                rs.getString("startDate"),
+                rs.getString("endDate"));
+        }, choreId);
+    }
+
+    public void updateChoreTemplate(
+        int choreId, 
+        String name, 
+        String description, 
+        String recurring, 
+        LocalDate startDate, 
+        LocalDate endDate
+    ) {
+        String sql = """
+                UPDATE
+                    chore_templates ct
+                SET
+                    name = ?,
+                    description = ?,
+                    recurring = ?,
+                    start_date = ?,
+                    end_date = ?
+                FROM chores c
+                WHERE ct.id = c.chore_id
+                AND c.id = ?;
+                """;
+        jdbcTemplate.update(sql, name, description, recurring, startDate, endDate, choreId);
+    }
 }

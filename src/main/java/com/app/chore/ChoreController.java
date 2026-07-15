@@ -18,9 +18,11 @@ import com.app.BaseResponseDto;
 import com.app.chore.dto.CreateChoreReq;
 import com.app.chore.dto.CreateChoreRes;
 import com.app.chore.dto.GetAllChoresRes;
+import com.app.chore.dto.GetChoreInfoRes;
 import com.app.chore.dto.MarkChoreCompleteReqDto;
 import com.app.chore.dto.UpdateChoreAssigneesReqDto;
 import com.app.chore.dto.UpdateChoreAssignmentsDtoRes;
+import com.app.chore.dto.UpdateChoreReq;
 import com.app.chore.types.Chore;
 import jakarta.validation.Valid;
 
@@ -53,7 +55,7 @@ public class ChoreController {
         System.out.println("date completed: " + body.dateCompleted());
         choreService.markChoreComplete(jwt.getSubject(), body.dateCompleted(), body.choreId());
         BaseResponseDto response = new BaseResponseDto();
-        response.getBody().put("message", "Chore marked complete successfully");
+        response.getBody().put("message", "Chore marked complete sduccessfully");
         return ResponseEntity.ok(response);
     }
 
@@ -94,6 +96,36 @@ public class ChoreController {
         Chore chore = choreService.updateChoreAssignees(jwt.getSubject(), body.choreId(), body.choreAssigneeIds());
         UpdateChoreAssignmentsDtoRes res = new UpdateChoreAssignmentsDtoRes(chore);
         return ResponseEntity.ok(res);
+    }
+
+    @GetMapping("get-chore-info")
+    public ResponseEntity<GetChoreInfoRes> getChoreInfo(
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestParam("choreId") int choreId
+    ) throws Exception {
+        CreateChoreReq chore = choreService.getChoreInfo(jwt.getSubject(), choreId);
+        GetChoreInfoRes res = new GetChoreInfoRes(chore);
+        return ResponseEntity.ok(res);
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<CreateChoreRes> updateChore (
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestBody @Valid UpdateChoreReq body
+    ) throws Exception {
+        Chore chore = 
+            choreService.updateChore(
+                jwt.getSubject(), 
+                body.choreId(), 
+                body.familyId(), 
+                body.name(), 
+                body.description(), 
+                body.recurring(), 
+                body.startDate(), 
+                body.endDate()
+            );
+        CreateChoreRes response = new CreateChoreRes(chore);
+        return ResponseEntity.ok(response);
     }
 
 }

@@ -10,6 +10,7 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.Nullable;
 import com.app.auth.types.PersActivity;
+import com.app.chore.dto.CreateChoreReq;
 import com.app.chore.exceptions.ChoreNotFoundException;
 import com.app.chore.types.Chore;
 import com.app.family.FamilyDao;
@@ -153,6 +154,58 @@ public class ChoreService {
         choreDao.removeChoreAssignees(choreId, removedAssignees);
         return choreDao.getChoreFromId(choreId);
     }
+
+    public CreateChoreReq getChoreInfo(String userId, int choreId) throws Exception {
+        boolean choreExists = choreDao.choreExists(choreId);
+        if (!choreExists) {
+            throw new ChoreNotFoundException(choreId);
+        }
+        String familyId = choreDao.getFamilyIdFromChoreId(choreId);
+        if (familyId == null) {
+            throw new ChoreNotFoundException(choreId);
+        }
+        boolean userInFamily = familyDao.userIsInFamily(userId, familyId);
+        if (!userInFamily) {
+            throw new UnauthorizedException();
+        }
+        List<PersActivity> userContext = familyDao.userFamilyContext(userId, familyId);
+        boolean userCanEdit = userCanEdit(userContext);
+        if (!userCanEdit) {
+            throw new UnauthorizedException();
+        }
+        return choreDao.getInfoChoreFromId(choreId);
+    }
+
+    public Chore updateChore(
+        String userId,
+        int choreId,
+        String familyId,
+        String name,
+        String description,
+        String recurring,
+        String startDate,
+        @Nullable String endDate
+    ) throws Exception {
+        boolean choreExists = choreDao.choreExists(choreId);
+        if (!choreExists) {
+            throw new ChoreNotFoundException(choreId);
+        }
+        boolean familyExistsCheck = familyDao.familyExists(familyId);
+        if (!familyExistsCheck) {
+            throw new FamilyNotFoundException(familyId);
+        }
+        boolean userInFamily = familyDao.userIsInFamily(userId, familyId);
+        if (!userInFamily) {
+            throw new UnauthorizedException();
+        }
+        List<PersActivity> userContext = familyDao.userFamilyContext(userId, familyId);
+        boolean userCanEdit = userCanEdit(userContext);
+        if (!userCanEdit) {
+            throw new UnauthorizedException();
+        }
+        choreDao.updateChoreTemplate(choreId, name, description, recurring, LocalDate.parse(startDate), endDate != "" ? LocalDate.parse(endDate) : null);
+        return choreDao.getChoreFromId(choreId);
+    }   
 
     private boolean userCanEdit(List<PersActivity> userActivities) {
         for (PersActivity activity : userActivities) {

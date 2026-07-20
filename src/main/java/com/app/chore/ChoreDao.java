@@ -242,7 +242,7 @@ public class ChoreDao {
     @Transactional
     public void deleteChore(int choreId, boolean thisAndFuture) {
         if (thisAndFuture) {
-            String sql2 = """
+            String sql = """
                     UPDATE 
                         chore_templates ct
                     SET 
@@ -251,16 +251,29 @@ public class ChoreDao {
                     WHERE c.id = ? and ct.id = c.chore_id;
                     """;
 
-            jdbcTemplate.update(sql2,LocalDate.now().minusDays(1), choreId);
+            jdbcTemplate.update(sql,LocalDate.now().minusDays(1), choreId);
 
-            String sql = """
+            String sql2 = """
+                    SELECT 
+                        chore_id
+                    FROM
+                        chores
+                    WHERE
+                        id = ?;
+                    """;
+
+            int choreTemplateId = jdbcTemplate.queryForObject(sql2, Integer.class, choreId);
+
+            System.out.println(choreTemplateId);
+
+            String sql3 = """
                     DELETE FROM
                         chores c
-                    USING
-                        chore_templates ct
-                    WHERE c.id = ? or c.chore_id = ct.id and due_date > ?;
+                    WHERE 
+                        c.chore_id = ? AND c.due_date > ?;
                     """;
-            jdbcTemplate.update(sql, choreId, LocalDate.now().minusDays(1));
+            jdbcTemplate.update(sql3, choreTemplateId, LocalDate.now().minusDays(1));
+
         } else {
             String sql = """
                     DELETE FROM

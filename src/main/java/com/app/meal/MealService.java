@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.app.family.FamilyDao;
 import com.app.globalExceptions.UnauthorizedException;
 import com.app.meal.types.MealPlanItem;
+import com.app.meal.types.Recipe;
 
 @Service
 public class MealService {
@@ -25,5 +26,15 @@ public class MealService {
             throw new UnauthorizedException();
         }
         return mealDao.getMealPlansForFamilyForDate(familyId, date);
+    }
+
+    public Recipe getRecipeDetail(String userId, int recipeId) throws Exception {
+        List<String> familyIds = mealDao.getFamilyIdFromRecipe(recipeId);
+        for (String fId : familyIds) {
+            if (familyDao.userIsInFamily(userId, fId)) {
+                return mealDao.getRecipeDetail(recipeId);
+            }
+        }
+        throw new UnauthorizedException();
     }
 }

@@ -1,14 +1,15 @@
 package com.app.meal.types;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class Recipe {
     int id;
-    int recipe_book_id;
+    int recipeBookId;
     String name;
     String description;
-    String ingredients;
-    String instructions;
+    List<RecipeIngredient> ingredients;
+    List<RecipeStep> instructions;
     int prepTime;
     int cookTime;
     int servings;
@@ -20,8 +21,8 @@ public class Recipe {
         int recipeBookId,
         String name,
         String description,
-        String ingredients,
-        String instructions,
+        List<RecipeIngredient> ingredients,
+        List<RecipeStep> instructions,
         int prepTime,
         int cookTime,
         int servings,
@@ -29,7 +30,7 @@ public class Recipe {
         LocalDateTime updatedAt
     ) {
         this.id = id;
-        this.recipe_book_id = recipeBookId;
+        this.recipeBookId = recipeBookId;
         this.name = name;
         this.description = description;
         this.ingredients = ingredients;
@@ -50,11 +51,11 @@ public class Recipe {
     }
 
     public int getRecipe_book_id() {
-        return recipe_book_id;
+        return recipeBookId;
     }
 
     public void setRecipe_book_id(int recipe_book_id) {
-        this.recipe_book_id = recipe_book_id;
+        this.recipeBookId = recipe_book_id;
     }
 
     public String getName() {
@@ -73,19 +74,19 @@ public class Recipe {
         this.description = description;
     }
 
-    public String getIngredients() {
+    public List<RecipeIngredient> getIngredients() {
         return ingredients;
     }
 
-    public void setIngredients(String ingredients) {
+    public void setIngredients(List<RecipeIngredient> ingredients) {
         this.ingredients = ingredients;
     }
 
-    public String getInstructions() {
+    public List<RecipeStep> getInstructions() {
         return instructions;
     }
 
-    public void setInstructions(String instructions) {
+    public void setInstructions(List<RecipeStep> instructions) {
         this.instructions = instructions;
     }
 

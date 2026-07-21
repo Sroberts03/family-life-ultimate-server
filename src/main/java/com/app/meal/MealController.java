@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.app.meal.dto.GetMealPlansResDto;
+import com.app.meal.dto.GetRecipeDetailResDto;
 import com.app.meal.types.MealPlanItem;
+import com.app.meal.types.Recipe;
 
 @RestController
 @RequestMapping("/api/meals")
@@ -31,6 +33,16 @@ public class MealController {
     ) throws Exception {
         List<MealPlanItem> mealPlans = mealService.getMealPlansForFamilyForDate(jwt.getSubject(), familyId, date);
         GetMealPlansResDto response = new GetMealPlansResDto(mealPlans);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/get-recipe-detail")
+    public ResponseEntity<GetRecipeDetailResDto> getRecipeDetail(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam("recipeId") int recipeId
+    ) throws Exception {
+        Recipe recipeDetail = mealService.getRecipeDetail(jwt.getSubject(), recipeId);
+        GetRecipeDetailResDto response = new GetRecipeDetailResDto(recipeDetail);
         return ResponseEntity.ok(response);
     }
     

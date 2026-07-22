@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import com.app.meal.types.MealPlanItem;
 import com.app.meal.types.MealType;
 import com.app.meal.types.Recipe;
+import com.app.meal.types.RecipeBook;
 import com.app.meal.types.RecipeIngredient;
 import com.app.meal.types.RecipeStep;
 
@@ -140,6 +141,28 @@ public class MealDao {
         recipe.setInstructions(steps);
                             
         return recipe;
+    }
+
+    public List<RecipeBook> getRecipeBooksForFamily(String familyId) {
+        String sql = """
+                SELECT
+                    rb.id,
+                    rb.name,
+                    rb.created_at as "createdAt",
+                    rb.updated_at as "updatedAt"
+                FROM 
+                    recipe_books rb
+                JOIN family_recipe_book fb ON rb.id = fb.recipe_book_id
+                WHERE 
+                    fb.family_id = ?;
+                """;
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            return new RecipeBook(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getTimestamp("createdAt").toLocalDateTime(),
+                    rs.getTimestamp("updatedAt").toLocalDateTime());
+        }, java.util.UUID.fromString(familyId));
     }
         
 }

@@ -5,9 +5,11 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.app.family.FamilyDao;
+import com.app.family.exceptions.FamilyNotFoundException;
 import com.app.globalExceptions.UnauthorizedException;
 import com.app.meal.types.MealPlanItem;
 import com.app.meal.types.Recipe;
+import com.app.meal.types.RecipeBook;
 
 @Service
 public class MealService {
@@ -36,5 +38,17 @@ public class MealService {
             }
         }
         throw new UnauthorizedException();
+    }
+
+    public List<RecipeBook> getRecipeBooksForFamily(String userId, String familyId) throws Exception {
+        boolean familyExists = familyDao.familyExists(familyId);
+        if (!familyExists) {
+            throw new FamilyNotFoundException(familyId);
+        }
+        boolean userInFamily = familyDao.userIsInFamily(userId, familyId);
+        if (!userInFamily) {
+            throw new UnauthorizedException();
+        }
+        return mealDao.getRecipeBooksForFamily(familyId);
     }
 }

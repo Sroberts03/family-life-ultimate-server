@@ -3,10 +3,8 @@ package com.app.meal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-
 import com.app.meal.types.MealPlanItem;
 import com.app.meal.types.MealType;
 import com.app.meal.types.Recipe;
@@ -164,5 +162,50 @@ public class MealDao {
                     rs.getTimestamp("updatedAt").toLocalDateTime());
         }, java.util.UUID.fromString(familyId));
     }
-        
+
+    public List<String> getFamilyIdFromRecipeBook(int recipeBookId) {
+        String sql = """
+                SELECT
+                    family_id
+                FROM
+                    family_recipe_book
+                WHERE
+                    recipe_book_id = ?;
+                """;
+        return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getString("family_id"), recipeBookId);
+    }
+
+    public List<Recipe> getRecipesForRecipeBook(int recipeBookId) {
+        String sql = """
+                SELECT
+                    r.id,
+                    r.recipe_book_id as "recipeBookId",
+                    r.name,
+                    r.description,
+                    r.servings,
+                    r.prep_time as "prepTime",
+                    r.cook_time as "cookTime",
+                    r.created_at as "createdAt",
+                    r.updated_at as "updatedAt"
+                FROM 
+                    recipes r
+                WHERE 
+                    r.recipe_book_id = ?;
+                """;
+                
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            return new Recipe(
+                    rs.getInt("id"),
+                    rs.getInt("recipeBookId"),
+                    rs.getString("name"),
+                    rs.getString("description"),
+                    new ArrayList<>(),
+                    new ArrayList<>(),
+                    rs.getInt("prepTime"),
+                    rs.getInt("cookTime"),
+                    rs.getInt("servings"),
+                    rs.getTimestamp("createdAt").toLocalDateTime(),
+                    rs.getTimestamp("updatedAt").toLocalDateTime());
+        }, recipeBookId);
+    }
 }

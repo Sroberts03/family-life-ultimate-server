@@ -51,4 +51,15 @@ public class MealService {
         }
         return mealDao.getRecipeBooksForFamily(familyId);
     }
+
+    public List<Recipe> getRecipesForFamily(String userId, int recipeBookId) throws Exception {
+        List<String> familyIds = mealDao.getFamilyIdFromRecipeBook(recipeBookId);
+        for (String fId : familyIds) {
+            if (familyDao.userIsInFamily(userId, fId)) {
+                return mealDao.getRecipesForRecipeBook(recipeBookId);
+            }
+        }
+        throw new UnauthorizedException();
+    }
+
 }

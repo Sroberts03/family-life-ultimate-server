@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.app.meal.dto.GetMealPlansResDto;
 import com.app.meal.dto.GetRecipeBooksResDto;
 import com.app.meal.dto.GetRecipeDetailResDto;
+import com.app.meal.dto.GetRecipesResDto;
 import com.app.meal.types.MealPlanItem;
 import com.app.meal.types.Recipe;
 import com.app.meal.types.RecipeBook;
@@ -56,5 +57,13 @@ public class MealController {
         GetRecipeBooksResDto response = new GetRecipeBooksResDto(recipeBooks);
         return ResponseEntity.ok(response);
     }
-    
+
+    @GetMapping("/get-recipes")
+    public ResponseEntity<GetRecipesResDto> getRecipesForFamily(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam("recipeBookId") int recipeBookId) throws Exception {
+        List<Recipe> recipes = mealService.getRecipesForFamily(jwt.getSubject(), recipeBookId);
+        GetRecipesResDto response = new GetRecipesResDto(recipes);
+        return ResponseEntity.ok(response);
+    }
 }

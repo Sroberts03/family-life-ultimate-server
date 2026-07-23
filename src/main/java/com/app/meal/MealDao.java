@@ -2,7 +2,9 @@ package com.app.meal;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import com.app.meal.types.MealPlanItem;
@@ -69,76 +71,77 @@ public class MealDao {
     public Recipe getRecipeDetail(int recipeId) {
         String sql = """
                 SELECT
-                    r.id,
-                    r.recipe_book_id as "recipeBookId",
-                    r.name,
-                    r.description,
-                    r.servings,
-                    r.prep_time as "prepTime",
-                    r.cook_time as "cookTime",
-                    r.created_at as "createdAt",
-                    r.updated_at as "updatedAt"
-                FROM 
-                    recipes r
-                WHERE 
-                    r.id = ?;
+                    r.id AS recipe_id, 
+                    r.recipe_book_id, 
+                    r.name AS recipe_name, 
+                    r.description, 
+                    r.servings, 
+                    r.prep_time, 
+                    r.cook_time, 
+                    r.created_at, 
+                    r.updated_at,
+                    
+                    ri.id AS ingredient_id, 
+                    ri.name AS ingredient_name, 
+                    ri.quantity, 
+                    ri.unit,
+                    
+                    rs.id AS step_id, 
+                    rs.step_order, 
+                    rs.step_text
+                FROM recipes r
+                LEFT JOIN recipe_ingredients ri ON r.id = ri.recipe_id
+                LEFT JOIN recipe_steps rs ON r.id = rs.recipe_id
+                WHERE r.id = ?;
                 """;
-                
-        Recipe recipe = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
-            return new Recipe(
-                    rs.getInt("id"),
-                    rs.getInt("recipeBookId"),
-                    rs.getString("name"),
-                    rs.getString("description"),
-                    new ArrayList<>(),
-                    new ArrayList<>(),
-                    rs.getInt("prepTime"),
-                    rs.getInt("cookTime"),
-                    rs.getInt("servings"),
-                    rs.getTimestamp("createdAt").toLocalDateTime(),
-                    rs.getTimestamp("updatedAt").toLocalDateTime());
-        }, recipeId);
 
-        String sqlIngredients = """
-                SELECT
-                    ri.id,
-                    ri.name,
-                    ri.quantity,
-                    ri.unit
-                FROM 
-                    recipe_ingredients ri
-                WHERE 
-                    ri.recipe_id = ?;
-                """;
-        List<RecipeIngredient> ingredients = jdbcTemplate.query(sqlIngredients, (rs, rowNum) -> {
-            return new RecipeIngredient(
-                    rs.getInt("id"),
-                    rs.getString("name"),
-                    rs.getDouble("quantity"),
-                    rs.getString("unit"));
-        }, recipeId);
+        return jdbcTemplate.query(sql, rs -> {
+            Recipe recipe = null;
+            
+            // We use Sets to track what we've already added so we don't create duplicates
+            Set<Integer> addedIngredientIds = new HashSet<>();
+            Set<Integer> addedStepIds = new HashSet<>();
 
-        String sqlSteps = """
-                SELECT
-                    rs.id,
-                    rs.step_order as "stepOrder",
-                    rs.step_text as "instruction"
-                FROM 
-                    recipe_steps rs
-                WHERE 
-                    rs.recipe_id = ?;
-                """;
-        List<RecipeStep> steps = jdbcTemplate.query(sqlSteps, (rs, rowNum) -> {
-            return new RecipeStep(
-                    rs.getInt("id"),
-                    rs.getString("instruction"),
-                    rs.getInt("stepOrder"));
-        }, recipeId);
+            while (rs.next()) {
+                // Initialize the core Recipe object on the very first row
+                if (recipe == null) {
+                    recipe = new Recipe(
+                            rs.getInt("recipe_id"),
+                            rs.getInt("recipe_book_id"),
+                            rs.getString("recipe_name"),
+                            rs.getString("description"),
+                            new ArrayList<>(), // Empty list ready for ingredients
+                            new ArrayList<>(), // Empty list ready for steps
+                            rs.getInt("prep_time"),
+                            rs.getInt("cook_time"),
+                            rs.getInt("servings"),
+                            rs.getTimestamp("created_at").toLocalDateTime(),
+                            rs.getTimestamp("updated_at").toLocalDateTime());
+                }
 
-        recipe.setIngredients(ingredients);
-        recipe.setInstructions(steps);
-                            
-        return recipe;
+                // Extract the ingredient. 
+                int ingredientId = rs.getInt("ingredient_id");
+                // rs.wasNull() ensures we don't add an empty ingredient if the recipe has none
+                if (!rs.wasNull() && addedIngredientIds.add(ingredientId)) {
+                    recipe.getIngredients().add(new RecipeIngredient(
+                            ingredientId,
+                            rs.getString("ingredient_name"),
+                            rs.getDouble("quantity"),
+                            rs.getString("unit")));
+                }
+
+                // Extract the step.
+                int stepId = rs.getInt("step_id");
+                if (!rs.wasNull() && addedStepIds.add(stepId)) {
+                    recipe.getInstructions().add(new RecipeStep(
+                            stepId,
+                            rs.getString("step_text"),
+                            rs.getInt("step_order")));
+                }
+            }
+            
+            return recipe;
+        }, recipeId);
     }
 
     public List<RecipeBook> getRecipeBooksForFamily(String familyId) {

@@ -13,6 +13,7 @@ import com.app.meal.types.Recipe;
 import com.app.meal.types.RecipeBook;
 import com.app.meal.types.RecipeIngredient;
 import com.app.meal.types.RecipeStep;
+import jakarta.transaction.Transactional;
 
 @Repository
 public class MealDao {
@@ -210,5 +211,49 @@ public class MealDao {
                     rs.getTimestamp("createdAt").toLocalDateTime(),
                     rs.getTimestamp("updatedAt").toLocalDateTime());
         }, recipeBookId);
+    }
+
+    @Transactional
+    public RecipeBook createRecipeBook(String familyId, String name) {
+        String sql = """
+                WITH new_book AS (
+                    INSERT INTO recipe_books (name)
+                    VALUES (?)
+                    RETURNING *
+                ),
+                new_relation AS (
+                    INSERT INTO family_recipe_book (family_id, recipe_book_id)
+                    SELECT ?, id FROM new_book
+                )
+                SELECT * FROM new_book;
+                """;
+                
+        return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
+            return new RecipeBook(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getTimestamp("created_at").toLocalDateTime(),
+                    rs.getTimestamp("updated_at").toLocalDateTime());
+        }, name, java.util.UUID.fromString(familyId));
+    }
+
+    public RecipeBook updateRecipeBook(int recipeBookId, String name) {
+        String sql = """
+                UPDATE
+                    recipe_books
+                SET
+                    name = ?,
+                    updated_at = NOW()
+                WHERE
+                    id = ?
+                RETURNING *;
+                """;
+        return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
+            return new RecipeBook(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getTimestamp("created_at").toLocalDateTime(),
+                    rs.getTimestamp("updated_at").toLocalDateTime());
+        }, name, recipeBookId);
     }
 }

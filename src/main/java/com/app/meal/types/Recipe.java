@@ -1,32 +1,23 @@
 package com.app.meal.types;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import jakarta.annotation.Nullable;
 
 public class Recipe {
-    @Nullable int id;
-    @Nullable int recipeBookId;
+    @Nullable Integer id;
+    @Nullable Integer recipeBookId;
     String name;
     String description;
-    List<RecipeIngredient> ingredients;
-    List<RecipeStep> instructions;
-    int prepTime;
-    int cookTime;
-    int servings;
+    String url;
     @Nullable LocalDateTime createdAt;
     @Nullable LocalDateTime updatedAt;
 
     public Recipe(
-        int id,
-        int recipeBookId,
+        Integer id,
+        Integer recipeBookId,
         String name,
         String description,
-        List<RecipeIngredient> ingredients,
-        List<RecipeStep> instructions,
-        int prepTime,
-        int cookTime,
-        int servings,
+        String url,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
@@ -34,28 +25,24 @@ public class Recipe {
         this.recipeBookId = recipeBookId;
         this.name = name;
         this.description = description;
-        this.ingredients = ingredients;
-        this.instructions = instructions;
-        this.prepTime = prepTime;
-        this.cookTime = cookTime;
-        this.servings = servings;
+        this.url = url;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public int getRecipe_book_id() {
+    public Integer getRecipeBookId() {
         return recipeBookId;
     }
 
-    public void setRecipe_book_id(int recipe_book_id) {
+    public void setRecipeBookId(Integer recipe_book_id) {
         this.recipeBookId = recipe_book_id;
     }
 
@@ -75,44 +62,12 @@ public class Recipe {
         this.description = description;
     }
 
-    public List<RecipeIngredient> getIngredients() {
-        return ingredients;
+    public String getUrl() {
+        return url;
     }
 
-    public void setIngredients(List<RecipeIngredient> ingredients) {
-        this.ingredients = ingredients;
-    }
-
-    public List<RecipeStep> getInstructions() {
-        return instructions;
-    }
-
-    public void setInstructions(List<RecipeStep> instructions) {
-        this.instructions = instructions;
-    }
-
-    public int getPrepTime() {
-        return prepTime;
-    }
-
-    public void setPrepTime(int prepTime) {
-        this.prepTime = prepTime;
-    }
-
-    public int getCookTime() {
-        return cookTime;
-    }
-
-    public void setCookTime(int cookTime) {
-        this.cookTime = cookTime;
-    }
-
-    public int getServings() {
-        return servings;
-    }
-
-    public void setServings(int servings) {
-        this.servings = servings;
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public LocalDateTime getCreatedAt() {

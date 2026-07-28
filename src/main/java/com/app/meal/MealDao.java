@@ -1,18 +1,13 @@
 package com.app.meal;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import com.app.meal.types.MealPlanItem;
 import com.app.meal.types.MealType;
 import com.app.meal.types.Recipe;
 import com.app.meal.types.RecipeBook;
-import com.app.meal.types.RecipeIngredient;
-import com.app.meal.types.RecipeStep;
 import jakarta.transaction.Transactional;
 
 @Repository
@@ -36,7 +31,7 @@ public class MealDao {
                     mp.meal_type as "mealType",
                     mp.created_at as "createdAt",
                     mp.updated_at as "updatedAt"
-                FROM meal_plan_item mp
+                FROM meal_plan_items mp
                 WHERE mp.family_id = ? AND mp.date = ?
                 ORDER BY mp.time;
                 """;
@@ -72,75 +67,28 @@ public class MealDao {
     public Recipe getRecipeDetail(int recipeId) {
         String sql = """
                 SELECT
-                    r.id AS recipe_id,
-                    r.recipe_book_id,
-                    r.name AS recipe_name,
+                    r.id,
+                    r.recipe_book_id as "recipeBookId",
+                    r.name,
                     r.description,
-                    r.servings,
-                    r.prep_time,
-                    r.cook_time,
-                    r.created_at,
-                    r.updated_at,
-
-                    ri.id AS ingredient_id,
-                    ri.name AS ingredient_name,
-                    ri.quantity,
-                    ri.unit,
-
-                    rs.id AS step_id,
-                    rs.step_order,
-                    rs.step_text
-                FROM recipes r
-                LEFT JOIN recipe_ingredients ri ON r.id = ri.recipe_id
-                LEFT JOIN recipe_steps rs ON r.id = rs.recipe_id
-                WHERE r.id = ?;
+                    r.url,
+                    r.created_at as "createdAt",
+                    r.updated_at as "updatedAt"
+                FROM
+                    recipes r
+                WHERE
+                    r.recipe_book_id = ?;
                 """;
 
         return jdbcTemplate.query(sql, rs -> {
-            Recipe recipe = null;
-
-            // We use Sets to track what we've already added so we don't create duplicates
-            Set<Integer> addedIngredientIds = new HashSet<>();
-            Set<Integer> addedStepIds = new HashSet<>();
-
-            while (rs.next()) {
-                // Initialize the core Recipe object on the very first row
-                if (recipe == null) {
-                    recipe = new Recipe(
-                            rs.getInt("recipe_id"),
-                            rs.getInt("recipe_book_id"),
-                            rs.getString("recipe_name"),
-                            rs.getString("description"),
-                            new ArrayList<>(), // Empty list ready for ingredients
-                            new ArrayList<>(), // Empty list ready for steps
-                            rs.getInt("prep_time"),
-                            rs.getInt("cook_time"),
-                            rs.getInt("servings"),
-                            rs.getTimestamp("created_at").toLocalDateTime(),
-                            rs.getTimestamp("updated_at").toLocalDateTime());
-                }
-
-                // Extract the ingredient.
-                int ingredientId = rs.getInt("ingredient_id");
-                // rs.wasNull() ensures we don't add an empty ingredient if the recipe has none
-                if (!rs.wasNull() && addedIngredientIds.add(ingredientId)) {
-                    recipe.getIngredients().add(new RecipeIngredient(
-                            ingredientId,
-                            rs.getString("ingredient_name"),
-                            rs.getDouble("quantity"),
-                            rs.getString("unit")));
-                }
-
-                // Extract the step.
-                int stepId = rs.getInt("step_id");
-                if (!rs.wasNull() && addedStepIds.add(stepId)) {
-                    recipe.getInstructions().add(new RecipeStep(
-                            stepId,
-                            rs.getString("step_text"),
-                            rs.getInt("step_order")));
-                }
-            }
-
+            Recipe recipe = new Recipe(
+                    rs.getInt("id"),
+                    rs.getInt("recipeBookId"),
+                    rs.getString("name"),
+                    rs.getString("description"),
+                    rs.getString("url"),
+                    rs.getTimestamp("createdAt").toLocalDateTime(),
+                    rs.getTimestamp("updatedAt").toLocalDateTime());
             return recipe;
         }, recipeId);
     }
@@ -186,9 +134,7 @@ public class MealDao {
                     r.recipe_book_id as "recipeBookId",
                     r.name,
                     r.description,
-                    r.servings,
-                    r.prep_time as "prepTime",
-                    r.cook_time as "cookTime",
+                    r.url,
                     r.created_at as "createdAt",
                     r.updated_at as "updatedAt"
                 FROM
@@ -203,11 +149,7 @@ public class MealDao {
                     rs.getInt("recipeBookId"),
                     rs.getString("name"),
                     rs.getString("description"),
-                    new ArrayList<>(),
-                    new ArrayList<>(),
-                    rs.getInt("prepTime"),
-                    rs.getInt("cookTime"),
-                    rs.getInt("servings"),
+                    rs.getString("url"),
                     rs.getTimestamp("createdAt").toLocalDateTime(),
                     rs.getTimestamp("updatedAt").toLocalDateTime());
         }, recipeBookId);
@@ -267,7 +209,7 @@ public class MealDao {
                     DELETE FROM recipes WHERE recipe_book_id = ? RETURNING id
                 ),
                 updated_meal_plans AS (
-                    UPDATE meal_plan_item SET recipe_id = NULL WHERE recipe_id IN (SELECT id FROM deleted_recipes)
+                    UPDATE meal_plan_items SET recipe_id = NULL WHERE recipe_id IN (SELECT id FROM deleted_recipes)
                 ),
                 deleted_recipe_steps AS (
                     DELETE FROM recipe_steps WHERE recipe_id IN (SELECT id FROM deleted_recipes)
@@ -278,5 +220,60 @@ public class MealDao {
                 DELETE FROM recipe_books WHERE id = ?;
                 """;
         jdbcTemplate.update(sql, recipeBookId, recipeBookId, recipeBookId);
+    }
+
+    public int getRecipeBookIdFromRecipeId(int recipeId) {
+        String sql = """
+                SELECT
+                    recipe_book_id
+                FROM
+                    recipes
+                WHERE
+                    id = ?;
+                """;
+        return jdbcTemplate.queryForObject(sql, Integer.class, recipeId);
+    }
+
+    public Recipe updateRecipe(int recipeId, String name, String description, String url) {
+        String sql = """
+                UPDATE
+                    recipes
+                SET
+                    name = ?,
+                    description = ?,
+                    url = ?,
+                    updated_at = NOW()
+                WHERE
+                    id = ?
+                RETURNING *;
+                """;
+        return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
+            return new Recipe(
+                    rs.getInt("id"),
+                    rs.getInt("recipe_book_id"),
+                    rs.getString("name"),
+                    rs.getString("description"),
+                    rs.getString("url"),
+                    rs.getTimestamp("created_at").toLocalDateTime(),
+                    rs.getTimestamp("updated_at").toLocalDateTime());
+        }, name, description, url, recipeId);
+    }
+
+    public Recipe createRecipe(String name, String description, String url, int recipeBookId) {
+        String sql = """
+                INSERT INTO recipes (name, description, url, recipe_book_id)
+                VALUES (?, ?, ?, ?)
+                RETURNING *;
+                """;
+        return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
+            return new Recipe(
+                    rs.getInt("id"),
+                    rs.getInt("recipe_book_id"),
+                    rs.getString("name"),
+                    rs.getString("description"),
+                    rs.getString("url"),
+                    rs.getTimestamp("created_at").toLocalDateTime(),
+                    rs.getTimestamp("updated_at").toLocalDateTime());
+        }, name, description, url, recipeBookId);
     }
 }

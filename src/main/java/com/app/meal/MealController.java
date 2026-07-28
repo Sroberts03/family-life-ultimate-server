@@ -23,6 +23,8 @@ import com.app.meal.dto.GetRecipeBooksResDto;
 import com.app.meal.dto.GetRecipeDetailResDto;
 import com.app.meal.dto.GetRecipesResDto;
 import com.app.meal.dto.UpdateRecipeBookResDto;
+import com.app.meal.dto.UpdateRecipeReqDto;
+import com.app.meal.dto.UpdateRecipeResDto;
 import com.app.meal.types.MealPlanItem;
 import com.app.meal.types.Recipe;
 import com.app.meal.types.RecipeBook;
@@ -100,5 +102,35 @@ public class MealController {
         BaseResponseDto response = new BaseResponseDto();
         response.getBody().put("message", "Recipe book deleted successfully");
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("update-recipe")
+    public ResponseEntity<UpdateRecipeResDto> updateRecipe(
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestBody @Valid UpdateRecipeReqDto body) throws Exception
+    {
+        Recipe recipe = 
+            mealService.updateRecipe(
+                jwt.getSubject(), 
+                body.id(), 
+                body.name(), 
+                body.description(), 
+                body.url());
+        return ResponseEntity.ok(new UpdateRecipeResDto(recipe));
+    }
+
+    @PostMapping("create-recipe")
+    public ResponseEntity<UpdateRecipeResDto> createRecipe(
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestBody @Valid UpdateRecipeReqDto body) throws Exception
+    {
+        Recipe recipe = 
+            mealService.createRecipe(
+                jwt.getSubject(), 
+                body.name(), 
+                body.description(), 
+                body.url(), 
+                body.recipeBookId());
+        return ResponseEntity.ok(new UpdateRecipeResDto(recipe));
     }
 }

@@ -107,6 +107,48 @@ public class MealService {
         mealDao.deleteRecipeBook(recipeBookId);
     }
 
+    public Recipe updateRecipe(
+            String userId,
+            Integer recipeId,
+            String name,
+            String description,
+            String url ) throws Exception {
+        List<String> familyIds = mealDao.getFamilyIdFromRecipeBook(mealDao.getRecipeBookIdFromRecipeId(recipeId));
+        boolean allowed = false;
+        for (String fId : familyIds) {
+            if (familyDao.userIsInFamily(userId, fId)
+                    && userAllowedToUpdateRecipeBooks(familyDao.userFamilyContext(userId, fId))) {
+                allowed = true;
+                break;
+            }
+        }
+        if (!allowed) {
+            throw new UnauthorizedException();
+        }
+        return mealDao.updateRecipe(recipeId, name, description, url);
+    }
+
+    public Recipe createRecipe(
+        String userId,
+        String name,
+        String description,
+        String url,
+        Integer recipeBookId) throws Exception {
+        List<String> familyIds = mealDao.getFamilyIdFromRecipeBook(recipeBookId);
+        boolean allowed = false;
+        for (String fId : familyIds) {
+            if (familyDao.userIsInFamily(userId, fId)
+                    && userAllowedToUpdateRecipeBooks(familyDao.userFamilyContext(userId, fId))) {
+                allowed = true;
+                break;
+            }
+        }
+        if (!allowed) {
+            throw new UnauthorizedException();
+        }
+        return mealDao.createRecipe(name, description, url, recipeBookId);
+    }
+
     private boolean userAllowedToUpdateRecipeBooks(List<PersActivity> context) {
         for (PersActivity activity : context) {
             if (activity.getActivityName().equals("household_head")

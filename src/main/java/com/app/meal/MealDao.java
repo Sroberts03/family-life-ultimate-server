@@ -77,10 +77,10 @@ public class MealDao {
                 FROM
                     recipes r
                 WHERE
-                    r.recipe_book_id = ?;
+                    r.id = ?;
                 """;
 
-        return jdbcTemplate.query(sql, rs -> {
+        return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
             Recipe recipe = new Recipe(
                     rs.getInt("id"),
                     rs.getInt("recipeBookId"),

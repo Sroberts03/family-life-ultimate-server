@@ -90,6 +90,22 @@ public class MealService {
         return mealDao.updateRecipeBook(recipeBookId, name);
     }
 
+    public void deleteRecipeBook(String userId, int recipeBookId) throws Exception {
+        List<String> familyIds = mealDao.getFamilyIdFromRecipeBook(recipeBookId);
+        boolean allowed = false;
+        for (String fId : familyIds) {
+            if (familyDao.userIsInFamily(userId, fId) 
+                && userAllowedToUpdateRecipeBooks(familyDao.userFamilyContext(userId, fId))) {
+                allowed = true;
+                break;
+            }
+        }
+        if (!allowed) {
+            throw new UnauthorizedException();
+        }
+        mealDao.deleteRecipeBook(recipeBookId);
+    }
+
     private boolean userAllowedToUpdateRecipeBooks(List<PersActivity> context) {
         for (PersActivity activity : context) {
             if (activity.getActivityName().equals("household_head")

@@ -256,4 +256,27 @@ public class MealDao {
                     rs.getTimestamp("updated_at").toLocalDateTime());
         }, name, recipeBookId);
     }
+
+    @Transactional
+    public void deleteRecipeBook(int recipeBookId) {
+        String sql = """
+                WITH deleted_relation AS (
+                    DELETE FROM family_recipe_book WHERE recipe_book_id = ?
+                ),
+                deleted_recipes AS (
+                    DELETE FROM recipes WHERE recipe_book_id = ? RETURNING id
+                ),
+                updated_meal_plans AS (
+                    UPDATE meal_plan_item SET recipe_id = NULL WHERE recipe_id IN (SELECT id FROM deleted_recipes)
+                ),
+                deleted_recipe_steps AS (
+                    DELETE FROM recipe_steps WHERE recipe_id IN (SELECT id FROM deleted_recipes)
+                ),
+                deleted_recipe_ingredients AS (
+                    DELETE FROM recipe_ingredients WHERE recipe_id IN (SELECT id FROM deleted_recipes)
+                )
+                DELETE FROM recipe_books WHERE id = ?;
+                """;
+        jdbcTemplate.update(sql, recipeBookId, recipeBookId, recipeBookId);
+    }
 }

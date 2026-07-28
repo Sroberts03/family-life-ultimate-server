@@ -6,6 +6,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.app.BaseResponseDto;
 import com.app.family.dto.UpdateRecipeBookReqDto;
 import com.app.meal.dto.CreateRecipeBook;
 import com.app.meal.dto.GetMealPlansResDto;
@@ -92,5 +94,16 @@ public class MealController {
     ) throws Exception {
         RecipeBook book = mealService.updateRecipeBook(jwt.getSubject(), body.id(), body.name());
         return ResponseEntity.ok(new UpdateRecipeBookResDto(book));
+    }
+
+    @DeleteMapping("delete-recipe-book")
+    public ResponseEntity<BaseResponseDto> deleteRecipeBook (
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestParam("recipeBookId") int recipeBookId
+    ) throws Exception {
+        mealService.deleteRecipeBook(jwt.getSubject(), recipeBookId);
+        BaseResponseDto response = new BaseResponseDto();
+        response.getBody().put("message", "Recipe book deleted successfully");
+        return ResponseEntity.ok(response);
     }
 }

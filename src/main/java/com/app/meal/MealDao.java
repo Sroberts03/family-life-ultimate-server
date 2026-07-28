@@ -210,12 +210,6 @@ public class MealDao {
                 ),
                 updated_meal_plans AS (
                     UPDATE meal_plan_items SET recipe_id = NULL WHERE recipe_id IN (SELECT id FROM deleted_recipes)
-                ),
-                deleted_recipe_steps AS (
-                    DELETE FROM recipe_steps WHERE recipe_id IN (SELECT id FROM deleted_recipes)
-                ),
-                deleted_recipe_ingredients AS (
-                    DELETE FROM recipe_ingredients WHERE recipe_id IN (SELECT id FROM deleted_recipes)
                 )
                 DELETE FROM recipe_books WHERE id = ?;
                 """;
@@ -275,5 +269,15 @@ public class MealDao {
                     rs.getTimestamp("created_at").toLocalDateTime(),
                     rs.getTimestamp("updated_at").toLocalDateTime());
         }, name, description, url, recipeBookId);
+    }
+
+    public void deleteRecipe(int recipeId) {
+        String sql = """
+                WITH updated_meal_plans AS (
+                    UPDATE meal_plan_items SET recipe_id = NULL WHERE recipe_id = ?
+                )
+                DELETE FROM recipes WHERE id = ?;
+                """;
+        jdbcTemplate.update(sql, recipeId, recipeId);
     }
 }

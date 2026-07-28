@@ -43,8 +43,7 @@ public class MealController {
     public ResponseEntity<GetMealPlansResDto> getMealPlansForFamilyForDate(
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam("familyId") String familyId,
-            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
-    ) throws Exception {
+            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) throws Exception {
         List<MealPlanItem> mealPlans = mealService.getMealPlansForFamilyForDate(jwt.getSubject(), familyId, date);
         GetMealPlansResDto response = new GetMealPlansResDto(mealPlans);
         return ResponseEntity.ok(response);
@@ -53,8 +52,7 @@ public class MealController {
     @GetMapping("/get-recipe-detail")
     public ResponseEntity<GetRecipeDetailResDto> getRecipeDetail(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestParam("recipeId") int recipeId
-    ) throws Exception {
+            @RequestParam("recipeId") int recipeId) throws Exception {
         Recipe recipeDetail = mealService.getRecipeDetail(jwt.getSubject(), recipeId);
         GetRecipeDetailResDto response = new GetRecipeDetailResDto(recipeDetail);
         return ResponseEntity.ok(response);
@@ -79,28 +77,25 @@ public class MealController {
     }
 
     @PostMapping("/create-recipe-book")
-    public ResponseEntity<UpdateRecipeBookResDto> createRecipeBook (
-        @AuthenticationPrincipal Jwt jwt,
-        @RequestBody @Valid CreateRecipeBook body
-    ) throws Exception {
+    public ResponseEntity<UpdateRecipeBookResDto> createRecipeBook(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody @Valid CreateRecipeBook body) throws Exception {
         RecipeBook book = mealService.createRecipeBook(jwt.getSubject(), body.familyId(), body.name());
         return ResponseEntity.ok(new UpdateRecipeBookResDto(book));
     }
 
     @PutMapping("update-recipe-book")
-    public ResponseEntity<UpdateRecipeBookResDto> updateRecipeBook (
-        @AuthenticationPrincipal Jwt jwt,
-        @RequestBody @Valid UpdateRecipeBookReqDto body
-    ) throws Exception {
+    public ResponseEntity<UpdateRecipeBookResDto> updateRecipeBook(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody @Valid UpdateRecipeBookReqDto body) throws Exception {
         RecipeBook book = mealService.updateRecipeBook(jwt.getSubject(), body.id(), body.name());
         return ResponseEntity.ok(new UpdateRecipeBookResDto(book));
     }
 
     @DeleteMapping("delete-recipe-book")
-    public ResponseEntity<BaseResponseDto> deleteRecipeBook (
-        @AuthenticationPrincipal Jwt jwt,
-        @RequestParam("recipeBookId") int recipeBookId
-    ) throws Exception {
+    public ResponseEntity<BaseResponseDto> deleteRecipeBook(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam("recipeBookId") int recipeBookId) throws Exception {
         mealService.deleteRecipeBook(jwt.getSubject(), recipeBookId);
         BaseResponseDto response = new BaseResponseDto();
         response.getBody().put("message", "Recipe book deleted successfully");

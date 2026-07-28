@@ -22,7 +22,8 @@ public class MealService {
         this.familyDao = familyDao;
     }
 
-    public List<MealPlanItem> getMealPlansForFamilyForDate(String userId, String familyId, LocalDate date) throws Exception {
+    public List<MealPlanItem> getMealPlansForFamilyForDate(String userId, String familyId, LocalDate date)
+            throws Exception {
         boolean userInFamily = familyDao.userIsInFamily(userId, familyId);
         if (!userInFamily) {
             throw new UnauthorizedException();
@@ -78,8 +79,8 @@ public class MealService {
         List<String> familyIds = mealDao.getFamilyIdFromRecipeBook(recipeBookId);
         boolean allowed = false;
         for (String fId : familyIds) {
-            if (familyDao.userIsInFamily(userId, fId) 
-                && userAllowedToUpdateRecipeBooks(familyDao.userFamilyContext(userId, fId))) {
+            if (familyDao.userIsInFamily(userId, fId)
+                    && userAllowedToUpdateRecipeBooks(familyDao.userFamilyContext(userId, fId))) {
                 allowed = true;
                 break;
             }
@@ -94,8 +95,8 @@ public class MealService {
         List<String> familyIds = mealDao.getFamilyIdFromRecipeBook(recipeBookId);
         boolean allowed = false;
         for (String fId : familyIds) {
-            if (familyDao.userIsInFamily(userId, fId) 
-                && userAllowedToUpdateRecipeBooks(familyDao.userFamilyContext(userId, fId))) {
+            if (familyDao.userIsInFamily(userId, fId)
+                    && userAllowedToUpdateRecipeBooks(familyDao.userFamilyContext(userId, fId))) {
                 allowed = true;
                 break;
             }

@@ -59,11 +59,11 @@ public class MealDao {
         String sql = """
                 SELECT
                     fb.family_id as "familyId"
-                FROM 
-                    recipes r 
+                FROM
+                    recipes r
                 JOIN recipe_books rb ON r.recipe_book_id = rb.id
                 JOIN family_recipe_book fb ON rb.id = fb.recipe_book_id
-                WHERE 
+                WHERE
                     r.id = ?;
                 """;
         return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getString("familyId"), recipeId);
@@ -72,23 +72,23 @@ public class MealDao {
     public Recipe getRecipeDetail(int recipeId) {
         String sql = """
                 SELECT
-                    r.id AS recipe_id, 
-                    r.recipe_book_id, 
-                    r.name AS recipe_name, 
-                    r.description, 
-                    r.servings, 
-                    r.prep_time, 
-                    r.cook_time, 
-                    r.created_at, 
+                    r.id AS recipe_id,
+                    r.recipe_book_id,
+                    r.name AS recipe_name,
+                    r.description,
+                    r.servings,
+                    r.prep_time,
+                    r.cook_time,
+                    r.created_at,
                     r.updated_at,
-                    
-                    ri.id AS ingredient_id, 
-                    ri.name AS ingredient_name, 
-                    ri.quantity, 
+
+                    ri.id AS ingredient_id,
+                    ri.name AS ingredient_name,
+                    ri.quantity,
                     ri.unit,
-                    
-                    rs.id AS step_id, 
-                    rs.step_order, 
+
+                    rs.id AS step_id,
+                    rs.step_order,
                     rs.step_text
                 FROM recipes r
                 LEFT JOIN recipe_ingredients ri ON r.id = ri.recipe_id
@@ -98,7 +98,7 @@ public class MealDao {
 
         return jdbcTemplate.query(sql, rs -> {
             Recipe recipe = null;
-            
+
             // We use Sets to track what we've already added so we don't create duplicates
             Set<Integer> addedIngredientIds = new HashSet<>();
             Set<Integer> addedStepIds = new HashSet<>();
@@ -120,7 +120,7 @@ public class MealDao {
                             rs.getTimestamp("updated_at").toLocalDateTime());
                 }
 
-                // Extract the ingredient. 
+                // Extract the ingredient.
                 int ingredientId = rs.getInt("ingredient_id");
                 // rs.wasNull() ensures we don't add an empty ingredient if the recipe has none
                 if (!rs.wasNull() && addedIngredientIds.add(ingredientId)) {
@@ -140,7 +140,7 @@ public class MealDao {
                             rs.getInt("step_order")));
                 }
             }
-            
+
             return recipe;
         }, recipeId);
     }
@@ -152,10 +152,10 @@ public class MealDao {
                     rb.name,
                     rb.created_at as "createdAt",
                     rb.updated_at as "updatedAt"
-                FROM 
+                FROM
                     recipe_books rb
                 JOIN family_recipe_book fb ON rb.id = fb.recipe_book_id
-                WHERE 
+                WHERE
                     fb.family_id = ?;
                 """;
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
@@ -191,12 +191,12 @@ public class MealDao {
                     r.cook_time as "cookTime",
                     r.created_at as "createdAt",
                     r.updated_at as "updatedAt"
-                FROM 
+                FROM
                     recipes r
-                WHERE 
+                WHERE
                     r.recipe_book_id = ?;
                 """;
-                
+
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             return new Recipe(
                     rs.getInt("id"),
@@ -227,7 +227,7 @@ public class MealDao {
                 )
                 SELECT * FROM new_book;
                 """;
-                
+
         return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
             return new RecipeBook(
                     rs.getInt("id"),

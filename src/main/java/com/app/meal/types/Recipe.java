@@ -2,10 +2,11 @@ package com.app.meal.types;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import jakarta.annotation.Nullable;
 
 public class Recipe {
-    int id;
-    int recipeBookId;
+    @Nullable int id;
+    @Nullable int recipeBookId;
     String name;
     String description;
     List<RecipeIngredient> ingredients;
@@ -13,8 +14,8 @@ public class Recipe {
     int prepTime;
     int cookTime;
     int servings;
-    LocalDateTime createdAt;
-    LocalDateTime updatedAt;
+    @Nullable LocalDateTime createdAt;
+    @Nullable LocalDateTime updatedAt;
 
     public Recipe(
         int id,

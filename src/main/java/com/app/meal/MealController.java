@@ -210,4 +210,14 @@ public class MealController {
         return ResponseEntity.ok(new GetRecipesResDto(recipes));
     }
 
+    @DeleteMapping("delete-meal-plan")
+    public ResponseEntity<BaseResponseDto> deleteMealPlanItem(
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestParam("mealPlanId") int mealPlanItemId) throws Exception
+    {
+        mealService.deleteMealPlanItem(jwt.getSubject(), mealPlanItemId);
+        BaseResponseDto response = new BaseResponseDto();
+        response.getBody().put("message", "Meal plan item deleted successfully");
+        return ResponseEntity.ok(response);
+    }
 }

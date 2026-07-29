@@ -449,4 +449,11 @@ public class MealDao {
                     rs.getTimestamp("updatedAt").toLocalDateTime());
         }, recipeBookId, searchPattern, searchPattern);
     }
+
+    public void deleteMealPlanItem(int mealPlanItemId) {
+        String sql = """
+                DELETE FROM meal_plan_items WHERE id = ?;
+                """;
+        jdbcTemplate.update(sql, mealPlanItemId);
+    }
 }

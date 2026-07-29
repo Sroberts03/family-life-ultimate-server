@@ -14,9 +14,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.app.BaseResponseDto;
 import com.app.family.dto.UpdateRecipeBookReqDto;
+import com.app.meal.dto.CreateMealPlanItemReq;
+import com.app.meal.dto.CreateMealPlanItemRes;
 import com.app.meal.dto.CreateRecipeBook;
 import com.app.meal.dto.GetMealPlansResDto;
 import com.app.meal.dto.GetRecipeBooksResDto;
@@ -28,7 +29,6 @@ import com.app.meal.dto.UpdateRecipeResDto;
 import com.app.meal.types.MealPlanItem;
 import com.app.meal.types.Recipe;
 import com.app.meal.types.RecipeBook;
-
 import jakarta.validation.Valid;
 
 @RestController
@@ -143,6 +143,32 @@ public class MealController {
         BaseResponseDto response = new BaseResponseDto();
         response.getBody().put("message", "Recipe deleted successfully");
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("get-all-recipes-for-family")
+    public ResponseEntity<GetRecipesResDto> getAllRecipesForFamily(
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestParam("familyId") String familyId) throws Exception
+    {
+        List<Recipe> recipes = mealService.getAllRecipesForFamily(jwt.getSubject(), familyId);
+        return ResponseEntity.ok(new GetRecipesResDto(recipes));
+    }
+
+    @PostMapping("create-meal-plan-item")
+    public ResponseEntity<CreateMealPlanItemRes> createNewMealPlanItem(
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestBody @Valid CreateMealPlanItemReq body) throws Exception
+    {
+        MealPlanItem mealPlanItem = 
+            mealService.createMealPlanItem(
+                jwt.getSubject(), 
+                body.familyId(), 
+                body.recipeId(), 
+                body.name(), 
+                body.date(), 
+                body.time(), 
+                body.mealType());
+        return ResponseEntity.ok(new CreateMealPlanItemRes(mealPlanItem));
     }
 
 }

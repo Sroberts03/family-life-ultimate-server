@@ -1,6 +1,7 @@
 package com.app.meal;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -279,5 +280,60 @@ public class MealDao {
                 DELETE FROM recipes WHERE id = ?;
                 """;
         jdbcTemplate.update(sql, recipeId, recipeId);
+    }
+
+    public List<Recipe> getAllRecipesForFamily(String familyId) {
+        String sql = """
+                SELECT
+                    r.id,
+                    r.recipe_book_id as "recipeBookId",
+                    r.name,
+                    r.description,
+                    r.url,
+                    r.created_at as "createdAt",
+                    r.updated_at as "updatedAt"
+                FROM
+                    recipes r
+                JOIN family_recipe_book fb ON r.recipe_book_id = fb.recipe_book_id
+                WHERE
+                    fb.family_id = ?;
+                """;
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            return new Recipe(
+                    rs.getInt("id"),
+                    rs.getInt("recipeBookId"),
+                    rs.getString("name"),
+                    rs.getString("description"),
+                    rs.getString("url"),
+                    rs.getTimestamp("createdAt").toLocalDateTime(),
+                    rs.getTimestamp("updatedAt").toLocalDateTime());
+        }, java.util.UUID.fromString(familyId));
+    }
+
+    public MealPlanItem createMealPlanItem(
+        String familyId, 
+        Integer recipeId, 
+        String name, 
+        LocalDate date, 
+        LocalTime time, 
+        MealType mealType
+    ) {
+        String sql = """
+                INSERT INTO meal_plan_items (family_id, recipe_id, name, date, time, meal_type)
+                VALUES (?::uuid, ?, ?, ?, ?, ?::meal_type)
+                RETURNING *;
+                """;
+        return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
+            return new MealPlanItem(
+                    rs.getInt("id"),
+                    rs.getString("family_id"),
+                    rs.getInt("recipe_id"),
+                    rs.getString("name"),
+                    rs.getDate("date").toLocalDate(),
+                    rs.getTime("time").toLocalTime(),
+                    MealType.valueOf(rs.getString("meal_type").toUpperCase()),
+                    rs.getTimestamp("created_at").toLocalDateTime(),
+                    rs.getTimestamp("updated_at").toLocalDateTime());
+        }, familyId, recipeId, name, date, time, mealType.name().toLowerCase());
     }
 }

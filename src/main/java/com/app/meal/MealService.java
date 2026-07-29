@@ -1,6 +1,7 @@
 package com.app.meal;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import com.app.auth.types.PersActivity;
@@ -8,6 +9,7 @@ import com.app.family.FamilyDao;
 import com.app.family.exceptions.FamilyNotFoundException;
 import com.app.globalExceptions.UnauthorizedException;
 import com.app.meal.types.MealPlanItem;
+import com.app.meal.types.MealType;
 import com.app.meal.types.Recipe;
 import com.app.meal.types.RecipeBook;
 
@@ -163,6 +165,30 @@ public class MealService {
             throw new UnauthorizedException();
         }
         mealDao.deleteRecipe(recipeId);
+    }
+
+    public List<Recipe> getAllRecipesForFamily(String userId, String familyId) throws Exception {
+        boolean userInFamily = familyDao.userIsInFamily(userId, familyId);
+        if (!userInFamily) {
+            throw new UnauthorizedException();
+        }
+        return mealDao.getAllRecipesForFamily(familyId);
+    }
+
+    public MealPlanItem createMealPlanItem(
+        String userId,
+        String familyId,
+        Integer recipeId,
+        String name,
+        LocalDate date,
+        LocalTime time,
+        MealType mealType) throws Exception {
+        boolean userInFamily = familyDao.userIsInFamily(userId, familyId);
+        if (!userInFamily) {
+            throw new UnauthorizedException();
+        }
+
+        return mealDao.createMealPlanItem(familyId, recipeId, name, date, time, mealType);
     }
 
     private boolean userAllowedToUpdateRecipeBooks(List<PersActivity> context) {

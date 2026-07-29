@@ -369,4 +369,52 @@ public class MealDao {
                     rs.getTimestamp("updatedAt").toLocalDateTime());
         }, java.util.UUID.fromString(familyId), searchPattern, searchPattern);
     }
+
+    public String getFamilyIdFromMealPlan(int mealPlanItemId) {
+        String sql = """
+                SELECT
+                    family_id
+                FROM
+                    meal_plan_items
+                WHERE
+                    id = ?;
+                """;
+        return jdbcTemplate.queryForObject(sql, String.class, mealPlanItemId);
+    }
+
+    public MealPlanItem updateMealPlanItem(
+        int mealPlanItemId, 
+        Integer recipeId, 
+        String name, 
+        LocalDate date, 
+        LocalTime time, 
+        MealType mealType
+    ) {
+        String sql = """
+                UPDATE
+                    meal_plan_items
+                SET
+                    recipe_id = ?,
+                    name = ?,
+                    date = ?,
+                    time = ?,
+                    meal_type = ?::meal_type,
+                    updated_at = NOW()
+                WHERE
+                    id = ?
+                RETURNING *;
+                """;
+        return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
+            return new MealPlanItem(
+                    rs.getInt("id"),
+                    rs.getString("family_id"),
+                    rs.getInt("recipe_id"),
+                    rs.getString("name"),
+                    rs.getDate("date").toLocalDate(),
+                    rs.getTime("time").toLocalTime(),
+                    MealType.valueOf(rs.getString("meal_type").toUpperCase()),
+                    rs.getTimestamp("created_at").toLocalDateTime(),
+                    rs.getTimestamp("updated_at").toLocalDateTime());
+        }, recipeId, name, date, time, mealType.name().toLowerCase(), mealPlanItemId);
+    }
 }

@@ -23,6 +23,8 @@ import com.app.meal.dto.GetMealPlansResDto;
 import com.app.meal.dto.GetRecipeBooksResDto;
 import com.app.meal.dto.GetRecipeDetailResDto;
 import com.app.meal.dto.GetRecipesResDto;
+import com.app.meal.dto.UpdateMealPlanItemReq;
+import com.app.meal.dto.UpdateMealPlanItemRes;
 import com.app.meal.dto.UpdateRecipeBookResDto;
 import com.app.meal.dto.UpdateRecipeReqDto;
 import com.app.meal.dto.UpdateRecipeResDto;
@@ -179,6 +181,23 @@ public class MealController {
     {
         List<Recipe> recipes = mealService.searchRecipesForFamily(jwt.getSubject(), familyId, searchQuery);
         return ResponseEntity.ok(new GetRecipesResDto(recipes));
+    }
+
+    @PutMapping("update-meal-plan-item")
+    public ResponseEntity<UpdateMealPlanItemRes> updateMealPlanItem(
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestBody @Valid UpdateMealPlanItemReq body) throws Exception
+    {
+        MealPlanItem mealPlanItem = 
+            mealService.updateMealPlanItem(
+                jwt.getSubject(), 
+                body.mealPlanItemId(), 
+                body.recipeId(), 
+                body.name(), 
+                body.date(), 
+                body.time(), 
+                body.mealType());
+        return ResponseEntity.ok(new UpdateMealPlanItemRes(mealPlanItem));
     }
 
 }

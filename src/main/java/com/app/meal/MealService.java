@@ -191,6 +191,14 @@ public class MealService {
         return mealDao.createMealPlanItem(familyId, recipeId, name, date, time, mealType);
     }
 
+    public List<Recipe> searchRecipesForFamily(String userId, String familyId, String searchQuery) throws Exception {
+        boolean userInFamily = familyDao.userIsInFamily(userId, familyId);
+        if (!userInFamily) {
+            throw new UnauthorizedException();
+        }
+        return mealDao.searchRecipesForFamily(familyId, searchQuery);
+    }
+
     private boolean userAllowedToUpdateRecipeBooks(List<PersActivity> context) {
         for (PersActivity activity : context) {
             if (activity.getActivityName().equals("household_head")

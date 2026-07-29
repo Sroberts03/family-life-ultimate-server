@@ -171,4 +171,14 @@ public class MealController {
         return ResponseEntity.ok(new CreateMealPlanItemRes(mealPlanItem));
     }
 
+    @GetMapping("search-recipes-for-family")
+    public ResponseEntity<GetRecipesResDto> searchRecipesForFamily(
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestParam("familyId") String familyId,
+        @RequestParam("searchQuery") String searchQuery) throws Exception
+    {
+        List<Recipe> recipes = mealService.searchRecipesForFamily(jwt.getSubject(), familyId, searchQuery);
+        return ResponseEntity.ok(new GetRecipesResDto(recipes));
+    }
+
 }

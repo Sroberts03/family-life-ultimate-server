@@ -312,7 +312,7 @@ public class MealDao {
 
     public MealPlanItem createMealPlanItem(
         String familyId, 
-        Integer recipeId, 
+        Integer recipeId,
         String name, 
         LocalDate date, 
         LocalTime time, 
@@ -335,5 +335,38 @@ public class MealDao {
                     rs.getTimestamp("created_at").toLocalDateTime(),
                     rs.getTimestamp("updated_at").toLocalDateTime());
         }, familyId, recipeId, name, date, time, mealType.name().toLowerCase());
+    }
+
+    public List<Recipe> searchRecipesForFamily(String familyId, String searchQuery) {
+        String sql = """
+                SELECT
+                    r.id,
+                    r.recipe_book_id as "recipeBookId",
+                    r.name,
+                    r.description,
+                    r.url,
+                    r.created_at as "createdAt",
+                    r.updated_at as "updatedAt"
+                FROM
+                    recipes r
+                JOIN family_recipe_book fb ON r.recipe_book_id = fb.recipe_book_id
+                WHERE
+                    fb.family_id = ?
+                    AND (
+                        r.name ILIKE ?
+                        OR r.description ILIKE ?
+                    );
+                """;
+        String searchPattern = "%" + searchQuery + "%";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            return new Recipe(
+                    rs.getInt("id"),
+                    rs.getInt("recipeBookId"),
+                    rs.getString("name"),
+                    rs.getString("description"),
+                    rs.getString("url"),
+                    rs.getTimestamp("createdAt").toLocalDateTime(),
+                    rs.getTimestamp("updatedAt").toLocalDateTime());
+        }, java.util.UUID.fromString(familyId), searchPattern, searchPattern);
     }
 }

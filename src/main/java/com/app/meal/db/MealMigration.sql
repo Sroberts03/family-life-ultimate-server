@@ -1,4 +1,4 @@
-create type meal_type as enum ('breakfast', 'lunch', 'dinner', 'snack', 'other');
+create type meal_type as enum ('breakfast', 'lunch', 'dinner', 'snack', 'dessert', 'other');
 
 create table if not exists recipe_books (
     id SERIAL PRIMARY KEY,

@@ -417,4 +417,36 @@ public class MealDao {
                     rs.getTimestamp("updated_at").toLocalDateTime());
         }, recipeId, name, date, time, mealType.name().toLowerCase(), mealPlanItemId);
     }
+
+    public List<Recipe> searchRecipes(int recipeBookId, String searchTerm) {
+        String sql = """
+                SELECT
+                    r.id,
+                    r.recipe_book_id as "recipeBookId",
+                    r.name,
+                    r.description,
+                    r.url,
+                    r.created_at as "createdAt",
+                    r.updated_at as "updatedAt"
+                FROM
+                    recipes r
+                WHERE
+                    r.recipe_book_id = ?
+                    AND (
+                        r.name ILIKE ?
+                        OR r.description ILIKE ?
+                    );
+                """;
+        String searchPattern = "%" + searchTerm + "%";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            return new Recipe(
+                    rs.getInt("id"),
+                    rs.getInt("recipeBookId"),
+                    rs.getString("name"),
+                    rs.getString("description"),
+                    rs.getString("url"),
+                    rs.getTimestamp("createdAt").toLocalDateTime(),
+                    rs.getTimestamp("updatedAt").toLocalDateTime());
+        }, recipeBookId, searchPattern, searchPattern);
+    }
 }

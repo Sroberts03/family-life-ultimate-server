@@ -220,6 +220,16 @@ public class MealService {
         return mealDao.updateMealPlanItem(mealPlanItemId, recipeId, name, date, time, mealType);
     }
 
+    public List<Recipe> searchRecipes(String userId, int recipeBookId, String searchQuery) throws Exception {
+        List<String> familyIds = mealDao.getFamilyIdFromRecipeBook(recipeBookId);
+        for (String fId : familyIds) {
+            if (familyDao.userIsInFamily(userId, fId)) {
+                return mealDao.searchRecipes(recipeBookId, searchQuery);
+            }
+        }
+        throw new UnauthorizedException();
+    }
+
     private boolean userAllowedToUpdateRecipeBooks(List<PersActivity> context) {
         for (PersActivity activity : context) {
             if (activity.getActivityName().equals("household_head")

@@ -200,4 +200,14 @@ public class MealController {
         return ResponseEntity.ok(new UpdateMealPlanItemRes(mealPlanItem));
     }
 
+    @GetMapping("search-recipes")
+    public ResponseEntity<GetRecipesResDto> searchRecipes(
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestParam("recipeBookId") int recipeBookId,
+        @RequestParam("searchQuery") String searchQuery) throws Exception
+    {
+        List<Recipe> recipes = mealService.searchRecipes(jwt.getSubject(), recipeBookId, searchQuery);
+        return ResponseEntity.ok(new GetRecipesResDto(recipes));
+    }
+
 }

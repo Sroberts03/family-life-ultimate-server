@@ -527,4 +527,11 @@ public class MealDao {
                 """;
         jdbcTemplate.update(sql, shoppingItemId);
     }
+
+    public void deleteShoppingListItem(int shoppingItemId) {
+        String sql = """
+                DELETE FROM shopping_list_items WHERE id = ?;
+                """;
+        jdbcTemplate.update(sql, shoppingItemId);
+    }
 }

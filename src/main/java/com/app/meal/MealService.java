@@ -4,9 +4,8 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.stereotype.Service;
-import com.app.auth.types.PersActivity;
+import com.app.Permissions;
 import com.app.family.FamilyDao;
 import com.app.family.exceptions.FamilyNotFoundException;
 import com.app.globalExceptions.UnauthorizedException;
@@ -21,10 +20,12 @@ public class MealService {
 
     private final MealDao mealDao;
     private final FamilyDao familyDao;
+    private final Permissions permissions;
 
-    public MealService(MealDao mealDao, FamilyDao familyDao) {
+    public MealService(MealDao mealDao, FamilyDao familyDao, Permissions permissions) {
         this.mealDao = mealDao;
         this.familyDao = familyDao;
+        this.permissions = permissions;
     }
 
     public List<MealPlanItem> getMealPlansForFamilyForDate(String userId, String familyId, LocalDate date)
@@ -73,8 +74,7 @@ public class MealService {
         if (!userInFamily) {
             throw new UnauthorizedException();
         }
-        List<PersActivity> userCanCreateRecipeBook = familyDao.userFamilyContext(userId, familyId);
-        if (!userAllowedToEdit(userCanCreateRecipeBook, "recipes")) {
+        if (!permissions.canEdit(userId, familyId, "recipes")) {
             throw new UnauthorizedException();
         }
         return mealDao.createRecipeBook(familyId, name);
@@ -85,7 +85,7 @@ public class MealService {
         boolean allowed = false;
         for (String fId : familyIds) {
             if (familyDao.userIsInFamily(userId, fId)
-                    && userAllowedToEdit(familyDao.userFamilyContext(userId, fId), "recipes")) {
+                    && permissions.canEdit(userId, fId, "recipes")) {
                 allowed = true;
                 break;
             }
@@ -101,7 +101,7 @@ public class MealService {
         boolean allowed = false;
         for (String fId : familyIds) {
             if (familyDao.userIsInFamily(userId, fId)
-                    && userAllowedToEdit(familyDao.userFamilyContext(userId, fId), "recipes")) {
+                    && permissions.canEdit(userId, fId, "recipes")) {
                 allowed = true;
                 break;
             }
@@ -122,7 +122,7 @@ public class MealService {
         boolean allowed = false;
         for (String fId : familyIds) {
             if (familyDao.userIsInFamily(userId, fId)
-                    && userAllowedToEdit(familyDao.userFamilyContext(userId, fId), "recipes")) {
+                    && permissions.canEdit(userId, fId, "recipes")) {
                 allowed = true;
                 break;
             }
@@ -143,7 +143,7 @@ public class MealService {
         boolean allowed = false;
         for (String fId : familyIds) {
             if (familyDao.userIsInFamily(userId, fId)
-                    && userAllowedToEdit(familyDao.userFamilyContext(userId, fId), "recipes")) {
+                    && permissions.canEdit(userId, fId, "recipes")) {
                 allowed = true;
                 break;
             }
@@ -159,7 +159,7 @@ public class MealService {
         boolean allowed = false;
         for (String fId : familyIds) {
             if (familyDao.userIsInFamily(userId, fId)
-                    && userAllowedToEdit(familyDao.userFamilyContext(userId, fId), "recipes")) {
+                    && permissions.canEdit(userId, fId, "recipes")) {
                 allowed = true;
                 break;
             }
@@ -216,8 +216,7 @@ public class MealService {
         if (!userInFamily) {
             throw new UnauthorizedException();
         }
-        List<PersActivity> userCanCreateRecipeBook = familyDao.userFamilyContext(userId, familyId);
-        if (!userAllowedToEdit(userCanCreateRecipeBook, "meal_plan")) {
+        if (!permissions.canEdit(userId, familyId, "meal_plan")) {
             throw new UnauthorizedException();
         }
         return mealDao.updateMealPlanItem(mealPlanItemId, recipeId, name, date, time, mealType);
@@ -239,8 +238,7 @@ public class MealService {
         if (!userInFamily) {
             throw new UnauthorizedException();
         }
-        List<PersActivity> userRights = familyDao.userFamilyContext(userId, familyId);
-        if (!userAllowedToEdit(userRights, "meal_plan")) {
+        if (!permissions.canEdit(userId, familyId, "meal_plan")) {
             throw new UnauthorizedException();
         }
         mealDao.deleteMealPlanItem(mealPlanItemId);
@@ -254,8 +252,7 @@ public class MealService {
         if (!userInFamily) {
             throw new UnauthorizedException();
         }
-        List<PersActivity> userRights = familyDao.userFamilyContext(userId, familyId);
-        if (!userAllowedToEdit(userRights, "viewShopping")) {
+        if (!permissions.canView(userId, familyId, "viewShopping")) {
             throw new UnauthorizedException();
         }
         return mealDao.getShoppingItems(familyId);
@@ -267,44 +264,21 @@ public class MealService {
         if (!userInFamily) {
             throw new UnauthorizedException();
         }
-        List<PersActivity> userRights = familyDao.userFamilyContext(userId, familyId);
-        if (!userAllowedToEdit(userRights, "viewShopping")) {
+        if (!permissions.canView(userId, familyId, "viewShopping")) {
             throw new UnauthorizedException();
         }
         mealDao.toggleItemPurchased(shoppingItemId);
     }
 
-    private boolean userAllowedToEdit(List<PersActivity> context, String type) {
-        if (type.equals("recipes")) {
-            for (PersActivity activity : context) {
-                if (activity.getActivityName().equals("household_head")
-                        || activity.getActivityName().equals("authorized_user")
-                        || activity.getActivityName().equals("edit_recipes")) {
-                    return true;
-                }
-            }
-            return false;
-        } else if (type.equals("meal_plan")) {
-            for (PersActivity activity : context) {
-                if (activity.getActivityName().equals("household_head")
-                        || activity.getActivityName().equals("authorized_user")
-                        || activity.getActivityName().equals("edit_meal_plan")) {
-                    return true;
-                }
-            }
-            return false;
-        } else if (type.equals("viewShopping")) {
-            for (PersActivity activity : context) {
-                if (activity.getActivityName().equals("household_head")
-                        || activity.getActivityName().equals("authorized_user")
-                        || activity.getActivityName().equals("view_shopping_list")) {
-                    return true;
-                }
-            }
-            return false;
-        } else {
-            return false;
+    public void deleteShoppingListItem(String userId, int shoppingItemId) throws Exception {
+        String familyId = mealDao.getFamilyIdFromShoppingItem(shoppingItemId);
+        boolean userInFamily = familyDao.userIsInFamily(userId, familyId);
+        if (!userInFamily) {
+            throw new UnauthorizedException();
         }
+        if (!permissions.canEdit(userId, familyId, "editShopping")) {
+            throw new UnauthorizedException();
+        }
+        mealDao.deleteShoppingListItem(shoppingItemId);
     }
-
 }

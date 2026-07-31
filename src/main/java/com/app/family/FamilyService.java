@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
+import com.app.Permissions;
 import com.app.auth.types.PersActivity;
 import com.app.family.exceptions.AlreadyMemberException;
 import com.app.family.exceptions.FamilyNotFoundException;
@@ -23,9 +24,11 @@ import com.app.globalExceptions.UnauthorizedException;
 public class FamilyService {
 
     private final FamilyDao familyDao;
+    private final Permissions permissions;
 
-    public FamilyService(FamilyDao familyDao) {
+    public FamilyService(FamilyDao familyDao, Permissions permissions) {
         this.familyDao = familyDao;
+        this.permissions = permissions;
     }
 
     public void requestJoin(String userId, String familyId, FamilyRole role) throws Exception {
@@ -57,9 +60,7 @@ public class FamilyService {
             throw new RequestDoesntExistException(requestId);
         }
         String familyId = familyDao.getRequestFamilyId(requestId);
-        List<PersActivity> userContext = familyDao.userFamilyContext(userId, familyId);
-        boolean userAllowedToEditRequest = userAllowedAuthAction(userContext);
-        if (!userAllowedToEditRequest) {
+        if (!permissions.canEdit(userId, familyId, "family")) {
             throw new UnauthorizedException();
         }
         familyDao.acceptOrDenyRequest(requestId, accept);
@@ -70,9 +71,7 @@ public class FamilyService {
     }
 
     public List<JoinRequest> getJoinRequests(String userId, String familyId) throws Exception {
-        List<PersActivity> userContext = familyDao.userFamilyContext(userId, familyId);
-        boolean userAllowedAuthAction = userAllowedAuthAction(userContext);
-        if (!userAllowedAuthAction) {
+        if (!permissions.canEdit(userId, familyId, "family")) {
             throw new UnauthorizedException();
         }
         boolean familyExists = familyDao.familyExists(familyId);
@@ -128,9 +127,7 @@ public class FamilyService {
         if (!memberInFamily) {
             throw new MemberNotFoundException(memberId, familyId);
         }
-        List<PersActivity> userContext = familyDao.userFamilyContext(userId, familyId);
-        boolean userAllowedToRemoveMembers = userAllowedAuthAction(userContext);
-        if (!userAllowedToRemoveMembers) {
+        if (!permissions.canEdit(userId, familyId, "family")) {
             throw new UnauthorizedException();
         }
         List<PersActivity> memberContext = familyDao.userFamilyContext(memberId, familyId);
@@ -149,15 +146,5 @@ public class FamilyService {
             truncatedAuthFamilies.add(new TruncatedFamily(authFamily.getFamilyId(), authFamily.getFamilyName()));
         }
         return truncatedAuthFamilies;
-    }
-
-    private boolean userAllowedAuthAction(List<PersActivity> context) {
-        for (PersActivity activity : context) {
-            if (activity.getActivityName().equals("household_head")
-                    || activity.getActivityName().equals("authorized_user")) {
-                return true;
-            }
-        }
-        return false;
     }
 }

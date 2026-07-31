@@ -1,5 +1,6 @@
 package com.app.chore;
 
+import com.app.Permissions;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.HashMap;
@@ -9,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.Nullable;
-import com.app.auth.types.PersActivity;
 import com.app.chore.dto.CreateChoreReq;
 import com.app.chore.exceptions.ChoreNotFoundException;
 import com.app.chore.types.Chore;
@@ -22,10 +22,12 @@ public class ChoreService {
 
     private final ChoreDao choreDao;
     private final FamilyDao familyDao;
+    private final Permissions permissions;
 
-    public ChoreService(ChoreDao choreDao, FamilyDao familyDao) {
+    public ChoreService(ChoreDao choreDao, FamilyDao familyDao, Permissions permissions) {
         this.choreDao = choreDao;
         this.familyDao = familyDao;
+        this.permissions = permissions;
     }
 
     public Map<Integer, Chore> getAllChoresForFamilyForDate(String userId, String familyId, LocalDate date) throws Exception {
@@ -37,16 +39,14 @@ public class ChoreService {
         if (!userInFamily) {
             throw new UnauthorizedException();
         }
-        List<PersActivity> userContext = familyDao.userFamilyContext(userId, familyId);
-        boolean userCanViewAllChores = userCanEdit(userContext);
         List<Chore> chores = choreDao.getAllChoresForFamilyForDate(familyId, date);
         Map<Integer, Chore> choresMap = new HashMap<>();
-        if (userCanViewAllChores) {
+        if (permissions.canEdit(userId, familyId, "chores")) {
             for (Chore chore : chores) {
                 choresMap.put(chore.getId(), chore);
             }
         }
-        if (!userCanViewAllChores) {
+        if (!permissions.canEdit(userId, familyId, "chores")) {
             for (Chore chore : chores) {
                 if (chore.getAssigneeIds() != null 
                     && chore.getAssigneeIds().contains(userId)) {
@@ -92,9 +92,7 @@ public class ChoreService {
         if (!userInFamily) {
             throw new UnauthorizedException();
         }
-        List<PersActivity> userContext = familyDao.userFamilyContext(userId, familyId);
-        boolean userCanAddChore = userCanEdit(userContext);
-        if (!userCanAddChore) {
+        if (!permissions.canEdit(userId, familyId, "chores")) {
             throw new UnauthorizedException();
         }
         int choreTemplateId = choreDao.createChoreTemplate(familyId, name, description, recurring, LocalDate.parse(startDate), endDate != "" ? LocalDate.parse(endDate) : null);
@@ -118,9 +116,7 @@ public class ChoreService {
         if (!userInFamily) {
             throw new UnauthorizedException();
         }
-        List<PersActivity> userContext = familyDao.userFamilyContext(userId, familyId);
-        boolean userCanDeleteChore = userCanEdit(userContext);
-        if (!userCanDeleteChore) {
+        if (!permissions.canEdit(userId, familyId, "chores")) {
             throw new UnauthorizedException();
         }
         choreDao.deleteChore(choreId, thisAndFuture);
@@ -139,9 +135,7 @@ public class ChoreService {
         if (!userInFamily) {
             throw new UnauthorizedException();
         }
-        List<PersActivity> userContext = familyDao.userFamilyContext(userId, familyId);
-        boolean userCanEdit = userCanEdit(userContext);
-        if (!userCanEdit) {
+        if (!permissions.canEdit(userId, familyId, "chores")) {
             throw new UnauthorizedException();
         }
         Set<String> currentAssignees = choreDao.getChoreAssignees(choreId);
@@ -168,9 +162,7 @@ public class ChoreService {
         if (!userInFamily) {
             throw new UnauthorizedException();
         }
-        List<PersActivity> userContext = familyDao.userFamilyContext(userId, familyId);
-        boolean userCanEdit = userCanEdit(userContext);
-        if (!userCanEdit) {
+        if (!permissions.canEdit(userId, familyId, "chores")) {
             throw new UnauthorizedException();
         }
         return choreDao.getInfoChoreFromId(choreId);
@@ -198,24 +190,10 @@ public class ChoreService {
         if (!userInFamily) {
             throw new UnauthorizedException();
         }
-        List<PersActivity> userContext = familyDao.userFamilyContext(userId, familyId);
-        boolean userCanEdit = userCanEdit(userContext);
-        if (!userCanEdit) {
+        if (!permissions.canEdit(userId, familyId, "chores")) {
             throw new UnauthorizedException();
         }
         choreDao.updateChoreTemplate(choreId, name, description, recurring, LocalDate.parse(startDate), endDate != "" ? LocalDate.parse(endDate) : null);
         return choreDao.getChoreFromId(choreId);
-    }   
-
-    private boolean userCanEdit(List<PersActivity> userActivities) {
-        for (PersActivity activity : userActivities) {
-            if (activity.getActivityName().equals("household_head")
-                    || activity.getActivityName().equals("authorized_user")
-                    || activity.getActivityName().equals("edit_chores")) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
+    } 
 }

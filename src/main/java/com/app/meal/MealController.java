@@ -245,4 +245,15 @@ public class MealController {
         response.getBody().put("message", "Item purchased successfully");
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping("delete-item")
+    public ResponseEntity<BaseResponseDto> deleteShoppingListItem(
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestParam("itemId") int shoppingItemId) throws Exception
+    {
+        mealService.deleteShoppingListItem(jwt.getSubject(), shoppingItemId);
+        BaseResponseDto response = new BaseResponseDto();
+        response.getBody().put("message", "Item deleted successfully");
+        return ResponseEntity.ok(response);
+    }
 }

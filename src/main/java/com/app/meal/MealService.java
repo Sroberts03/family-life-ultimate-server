@@ -252,7 +252,7 @@ public class MealService {
         if (!userInFamily) {
             throw new UnauthorizedException();
         }
-        if (!permissions.canView(userId, familyId, "viewShopping")) {
+        if (!permissions.canView(userId, familyId, "shopping")) {
             throw new UnauthorizedException();
         }
         return mealDao.getShoppingItems(familyId);
@@ -264,7 +264,7 @@ public class MealService {
         if (!userInFamily) {
             throw new UnauthorizedException();
         }
-        if (!permissions.canView(userId, familyId, "viewShopping")) {
+        if (!permissions.canView(userId, familyId, "shopping")) {
             throw new UnauthorizedException();
         }
         mealDao.toggleItemPurchased(shoppingItemId);
@@ -276,7 +276,7 @@ public class MealService {
         if (!userInFamily) {
             throw new UnauthorizedException();
         }
-        if (!permissions.canEdit(userId, familyId, "editShopping")) {
+        if (!permissions.canEdit(userId, familyId, "shopping")) {
             throw new UnauthorizedException();
         }
         mealDao.deleteShoppingListItem(shoppingItemId);

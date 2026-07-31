@@ -34,7 +34,7 @@ public class Permissions {
                         return true;
                     }
                     break;
-                case "editShopping":
+                case "shopping":
                     if (activity.getActivityName().equals("edit_shopping_list")) {
                         return true;
                     }
@@ -59,7 +59,7 @@ public class Permissions {
                     return true;
             }
             switch(type) {
-                case "viewShopping":
+                case "shopping":
                     if (activity.getActivityName().equals("view_shopping_list")) {
                         return true;
                     }

@@ -2,6 +2,8 @@ package com.app.meal;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,6 +25,7 @@ import com.app.meal.dto.GetMealPlansResDto;
 import com.app.meal.dto.GetRecipeBooksResDto;
 import com.app.meal.dto.GetRecipeDetailResDto;
 import com.app.meal.dto.GetRecipesResDto;
+import com.app.meal.dto.GetShoppingItemsRes;
 import com.app.meal.dto.UpdateMealPlanItemReq;
 import com.app.meal.dto.UpdateMealPlanItemRes;
 import com.app.meal.dto.UpdateRecipeBookResDto;
@@ -31,6 +34,8 @@ import com.app.meal.dto.UpdateRecipeResDto;
 import com.app.meal.types.MealPlanItem;
 import com.app.meal.types.Recipe;
 import com.app.meal.types.RecipeBook;
+import com.app.meal.types.ShoppingListItem;
+
 import jakarta.validation.Valid;
 
 @RestController
@@ -218,6 +223,26 @@ public class MealController {
         mealService.deleteMealPlanItem(jwt.getSubject(), mealPlanItemId);
         BaseResponseDto response = new BaseResponseDto();
         response.getBody().put("message", "Meal plan item deleted successfully");
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("get-shopping-list")
+    public ResponseEntity<GetShoppingItemsRes> getShoppingItems(
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestParam("familyId") String familyId) throws Exception
+    {
+        Map<Integer, ShoppingListItem> shoppingItems = mealService.getShoppingItems(jwt.getSubject(), familyId);
+        return ResponseEntity.ok(new GetShoppingItemsRes(shoppingItems));
+    }
+
+    @PutMapping("toggle-item-purchased")
+    public ResponseEntity<BaseResponseDto> toggleItemPurchased(
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestParam("itemId") int shoppingItemId) throws Exception
+    {
+        mealService.toggleItemPurchased(jwt.getSubject(), shoppingItemId);
+        BaseResponseDto response = new BaseResponseDto();
+        response.getBody().put("message", "Item purchased successfully");
         return ResponseEntity.ok(response);
     }
 }

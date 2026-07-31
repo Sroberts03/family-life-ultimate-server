@@ -3,6 +3,8 @@ package com.app.meal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.stereotype.Service;
 import com.app.auth.types.PersActivity;
 import com.app.family.FamilyDao;
@@ -12,6 +14,7 @@ import com.app.meal.types.MealPlanItem;
 import com.app.meal.types.MealType;
 import com.app.meal.types.Recipe;
 import com.app.meal.types.RecipeBook;
+import com.app.meal.types.ShoppingListItem;
 
 @Service
 public class MealService {
@@ -243,6 +246,34 @@ public class MealService {
         mealDao.deleteMealPlanItem(mealPlanItemId);
     }
 
+    public Map<Integer, ShoppingListItem> getShoppingItems(
+            String userId, 
+            String familyId) 
+    throws Exception{
+        boolean userInFamily = familyDao.userIsInFamily(userId, familyId);
+        if (!userInFamily) {
+            throw new UnauthorizedException();
+        }
+        List<PersActivity> userRights = familyDao.userFamilyContext(userId, familyId);
+        if (!userAllowedToEdit(userRights, "viewShopping")) {
+            throw new UnauthorizedException();
+        }
+        return mealDao.getShoppingItems(familyId);
+    }
+
+    public void toggleItemPurchased(String userId, int shoppingItemId) throws Exception {
+        String familyId = mealDao.getFamilyIdFromShoppingItem(shoppingItemId);
+        boolean userInFamily = familyDao.userIsInFamily(userId, familyId);
+        if (!userInFamily) {
+            throw new UnauthorizedException();
+        }
+        List<PersActivity> userRights = familyDao.userFamilyContext(userId, familyId);
+        if (!userAllowedToEdit(userRights, "viewShopping")) {
+            throw new UnauthorizedException();
+        }
+        mealDao.toggleItemPurchased(shoppingItemId);
+    }
+
     private boolean userAllowedToEdit(List<PersActivity> context, String type) {
         if (type.equals("recipes")) {
             for (PersActivity activity : context) {
@@ -258,6 +289,15 @@ public class MealService {
                 if (activity.getActivityName().equals("household_head")
                         || activity.getActivityName().equals("authorized_user")
                         || activity.getActivityName().equals("edit_meal_plan")) {
+                    return true;
+                }
+            }
+            return false;
+        } else if (type.equals("viewShopping")) {
+            for (PersActivity activity : context) {
+                if (activity.getActivityName().equals("household_head")
+                        || activity.getActivityName().equals("authorized_user")
+                        || activity.getActivityName().equals("view_shopping_list")) {
                     return true;
                 }
             }

@@ -3,12 +3,16 @@ package com.app.meal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import com.app.meal.types.MealPlanItem;
 import com.app.meal.types.MealType;
 import com.app.meal.types.Recipe;
 import com.app.meal.types.RecipeBook;
+import com.app.meal.types.ShoppingListItem;
+
 import jakarta.transaction.Transactional;
 
 @Repository
@@ -455,5 +459,72 @@ public class MealDao {
                 DELETE FROM meal_plan_items WHERE id = ?;
                 """;
         jdbcTemplate.update(sql, mealPlanItemId);
+    }
+
+    public Map<Integer, ShoppingListItem> getShoppingItems(String familyId) {
+        String sql = """
+                SELECT
+                    sli.id,
+                    sli.family_id as "familyId",
+                    sli.quantity,
+                    sli.unit,
+                    sli.item,
+                    sli.purchased,
+                    sli.created_at as "createdAt",
+                    sli.updated_at as "updatedAt"
+                FROM
+                    shopping_list_items sli
+                WHERE
+                    sli.family_id = ?
+                    AND (
+                        sli.purchased = false 
+                        OR (sli.purchased = true AND sli.purchased_date > NOW() - INTERVAL '7 days')
+                    )
+                ORDER BY
+                    sli.purchased,
+                    sli.item;
+                """;
+        return jdbcTemplate.query(sql, rs -> {
+            java.util.Map<Integer, ShoppingListItem> map = new java.util.HashMap<>();
+            while (rs.next()) {
+                ShoppingListItem item = new ShoppingListItem(
+                        rs.getInt("id"),
+                        rs.getString("familyId"),
+                        rs.getInt("quantity"),
+                        rs.getString("unit"),
+                        rs.getString("item"),
+                        rs.getBoolean("purchased"),
+                        rs.getTimestamp("createdAt").toLocalDateTime(),
+                        rs.getTimestamp("updatedAt").toLocalDateTime());
+                map.put(item.getId(), item);
+            }
+            return map;
+        }, java.util.UUID.fromString(familyId));
+    }
+
+    public String getFamilyIdFromShoppingItem(int shoppingItemId) {
+        String sql = """
+                SELECT
+                    family_id
+                FROM
+                    shopping_list_items
+                WHERE
+                    id = ?;
+                """;
+        return jdbcTemplate.queryForObject(sql, String.class, shoppingItemId);
+    }
+
+    public void toggleItemPurchased(int shoppingItemId) {
+        String sql = """
+                UPDATE
+                    shopping_list_items
+                SET
+                    purchased = NOT purchased,
+                    purchased_date = NOW(),
+                    updated_at = NOW()
+                WHERE
+                    id = ?;
+                """;
+        jdbcTemplate.update(sql, shoppingItemId);
     }
 }

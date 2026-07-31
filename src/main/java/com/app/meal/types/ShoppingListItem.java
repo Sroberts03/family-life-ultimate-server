@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public class ShoppingListItem {
     int id;
-    int familyId;
+    String familyId;
     int quantity;   
     String unit;    
     String item;    
@@ -14,7 +14,7 @@ public class ShoppingListItem {
 
     public ShoppingListItem(
         int id, 
-        int familyId, 
+        String familyId, 
         int quantity, 
         String unit,
         String item, 
@@ -40,11 +40,11 @@ public class ShoppingListItem {
         this.id = id;
     }
 
-    public int getFamilyId() {
+    public String getFamilyId() {
         return familyId;
     }
 
-    public void setFamilyId(int familyId) {
+    public void setFamilyId(String familyId) {
         this.familyId = familyId;
     }
 

@@ -25,11 +25,12 @@ create table if not exists recipes (
 
 create table if not exists shopping_list_items (
     id SERIAL PRIMARY KEY,
-    family_id UUID REFERENCES families(family_id),
+    family_id UUID REFERENCES families(family_id) not null,
     quantity int NOT NULL,
     unit VARCHAR(255) NOT NULL,
     item VARCHAR(255) NOT NULL,
     purchased boolean DEFAULT false,
+    purchased_date TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

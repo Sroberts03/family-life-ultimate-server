@@ -281,4 +281,37 @@ public class MealService {
         }
         mealDao.deleteShoppingListItem(shoppingItemId);
     }
+
+    public ShoppingListItem createShoppingItem(
+        String userId,
+        String familyId,
+        int quantity,
+        String unit,
+        String item) throws Exception {
+        boolean userInFamily = familyDao.userIsInFamily(userId, familyId);
+        if (!userInFamily) {
+            throw new UnauthorizedException();
+        }
+        if (!permissions.canEdit(userId, familyId, "shopping")) {
+            throw new UnauthorizedException();
+        }
+        return mealDao.createShoppingItem(familyId, quantity, unit, item);
+    }
+
+    public void updateShoppingItem(
+        String userId,
+        Integer shoppingItemId,
+        Integer quantity,
+        String unit,
+        String item) throws Exception {
+        String familyId = mealDao.getFamilyIdFromShoppingItem(shoppingItemId);
+        boolean userInFamily = familyDao.userIsInFamily(userId, familyId);
+        if (!userInFamily) {
+            throw new UnauthorizedException();
+        }
+        if (!permissions.canEdit(userId, familyId, "shopping")) {
+            throw new UnauthorizedException();
+        }
+        mealDao.updateShoppingItem(shoppingItemId, quantity, unit, item);
+    }
 }

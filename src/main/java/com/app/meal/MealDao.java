@@ -534,4 +534,57 @@ public class MealDao {
                 """;
         jdbcTemplate.update(sql, shoppingItemId);
     }
+
+    public ShoppingListItem createShoppingItem(
+        String familyId,
+        int quantity,
+        String unit,
+        String item
+    ) {
+        String sql = """
+                INSERT INTO
+                    shopping_list_items
+                    (
+                        family_id,
+                        quantity,
+                        unit,
+                        item
+                    )
+                VALUES
+                    (?::uuid, ?, ?, ?)
+                RETURNING
+                    id, family_id as "familyId", quantity, unit, item, purchased, created_at as "createdAt", updated_at as "updatedAt";
+                """;
+        return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
+            return new ShoppingListItem(
+                    rs.getInt("id"),
+                    rs.getString("familyId"),
+                    rs.getInt("quantity"),
+                    rs.getString("unit"),
+                    rs.getString("item"),
+                    rs.getBoolean("purchased"),
+                    rs.getTimestamp("createdAt").toLocalDateTime(),
+                    rs.getTimestamp("updatedAt").toLocalDateTime());
+        }, java.util.UUID.fromString(familyId), quantity, unit, item);
+    }
+
+    public void updateShoppingItem(
+        int shoppingItemId,
+        int quantity,
+        String unit,
+        String item
+    ) {
+        String sql = """
+                UPDATE
+                    shopping_list_items
+                SET
+                    quantity = ?,
+                    unit = ?,
+                    item = ?,
+                    updated_at = NOW()
+                WHERE
+                    id = ?;
+                """;
+        jdbcTemplate.update(sql, quantity, unit, item, shoppingItemId);
+    }
 }

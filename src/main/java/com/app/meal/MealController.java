@@ -20,6 +20,8 @@ import com.app.BaseResponseDto;
 import com.app.family.dto.UpdateRecipeBookReqDto;
 import com.app.meal.dto.CreateMealPlanItemReq;
 import com.app.meal.dto.CreateMealPlanItemRes;
+import com.app.meal.dto.CreateNewShoppingItemReq;
+import com.app.meal.dto.CreateNewShoppingItemRes;
 import com.app.meal.dto.CreateRecipeBook;
 import com.app.meal.dto.GetMealPlansResDto;
 import com.app.meal.dto.GetRecipeBooksResDto;
@@ -31,6 +33,7 @@ import com.app.meal.dto.UpdateMealPlanItemRes;
 import com.app.meal.dto.UpdateRecipeBookResDto;
 import com.app.meal.dto.UpdateRecipeReqDto;
 import com.app.meal.dto.UpdateRecipeResDto;
+import com.app.meal.dto.UpdateShoppingItemReq;
 import com.app.meal.types.MealPlanItem;
 import com.app.meal.types.Recipe;
 import com.app.meal.types.RecipeBook;
@@ -254,6 +257,33 @@ public class MealController {
         mealService.deleteShoppingListItem(jwt.getSubject(), shoppingItemId);
         BaseResponseDto response = new BaseResponseDto();
         response.getBody().put("message", "Item deleted successfully");
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("create-item")
+    public ResponseEntity<CreateNewShoppingItemRes> createShoppingItem(
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestBody @Valid CreateNewShoppingItemReq body) throws Exception
+    {
+        ShoppingListItem shoppingItem = 
+            mealService.createShoppingItem(jwt.getSubject(), body.familyId(), body.quantity(), body.unit(), body.item());
+        return ResponseEntity.ok(new CreateNewShoppingItemRes(shoppingItem));
+    }
+
+    @PutMapping("update-item")
+    public ResponseEntity<BaseResponseDto> updateShoppingItem(
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestBody @Valid UpdateShoppingItemReq body) throws Exception
+    {
+        mealService.updateShoppingItem(
+            jwt.getSubject(),
+            body.id(), 
+            body.quantity(), 
+            body.unit(), 
+            body.item()
+        );
+        BaseResponseDto response = new BaseResponseDto();
+        response.getBody().put("message", "Item updated successfully");
         return ResponseEntity.ok(response);
     }
 }

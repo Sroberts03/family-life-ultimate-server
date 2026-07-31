@@ -17,6 +17,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<BaseResponseDto> handleUnexpected(Exception e) {
+        e.printStackTrace();
         BaseResponseDto response = new BaseResponseDto();
         response.getBody().put("message", "An Unknown Error Occured");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);

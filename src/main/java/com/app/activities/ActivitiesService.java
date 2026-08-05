@@ -2,7 +2,6 @@ package com.app.activities;
 
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.stereotype.Service;
 import com.app.activities.types.DetailedActivity;
 import com.app.auth.types.PersActivity;
@@ -32,13 +31,16 @@ public class ActivitiesService {
     }
 
     private boolean userCanEditFamilyActivities(List<PersActivity> reqUserActivities, Map<Integer, Boolean> permissionsToChange) {
-       for (PersActivity activity : reqUserActivities) {
+        List<DetailedActivity> permission = activitiesDao.getAllActivitiesFromListOfIds(permissionsToChange.keySet());
+        if (permission.stream().anyMatch(persActivity -> persActivity.isAdmin() == true)) {
+            return false;
+        }
+        for (PersActivity activity : reqUserActivities) {
             if (activity.getActivityName().equals("household_head")) {
                 return true;
             }
             else if (activity.getActivityName().equals("authorized_user")) {
-                List<String> permissionNames = activitiesDao.getAllActivitiesNamesFromListOfIds(permissionsToChange.keySet());
-                if (!permissionNames.contains("household_head")) {
+                if (!permission.stream().anyMatch(persActivity -> persActivity.getName().equals("household_head"))) {
                     return true;
                 }
             }

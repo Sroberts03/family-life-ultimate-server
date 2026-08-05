@@ -22,20 +22,20 @@ public class ActivitiesDao {
     public List<DetailedActivity> getAllActivities() {
         String sql = """
             SELECT 
-                a.name,
-                a.description,
-                a.id
+                *
             FROM
                 activities a
             WHERE
-                a.current = true;
+                a.current = true
+                and is_admin = false;
             """;
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             return new DetailedActivity(
                 rs.getString("name"),
                 rs.getString("description"),
-                rs.getInt("id")
+                rs.getInt("id"),
+                rs.getBoolean("is_admin")
             );
         });
     }
@@ -61,14 +61,14 @@ public class ActivitiesDao {
         ), UUID.fromString(userId), UUID.fromString(familyId));
     }
 
-    public List<String> getAllActivitiesNamesFromListOfIds(Set<Integer> activityIds) {
+    public List<DetailedActivity> getAllActivitiesFromListOfIds(Set<Integer> activityIds) {
         String placeholders = activityIds.stream()
             .map(id -> "?")
             .collect(Collectors.joining(","));
 
         String sql = """
                 SELECT 
-                    a.name
+                    *
                 FROM
                     activities a
                 WHERE
@@ -76,7 +76,12 @@ public class ActivitiesDao {
                 """.formatted(placeholders);
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
-            return rs.getString("name");
+            return new DetailedActivity(
+                rs.getString("name"),
+                rs.getString("description"),
+                rs.getInt("id"),
+                rs.getBoolean("is_admin")
+            );
         }, activityIds.toArray());
     }
     

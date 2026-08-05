@@ -4,11 +4,13 @@ public class DetailedActivity {
     private String name;
     private String description;
     private int activityId;
+    private boolean isAdmin;
 
-    public DetailedActivity(String name, String description, int activityId) {
+    public DetailedActivity(String name, String description, int activityId, boolean isAdmin) {
         this.name = name;
         this.description = description;
         this.activityId = activityId;
+        this.isAdmin = isAdmin;
     }
 
     public String getName() {
@@ -33,5 +35,13 @@ public class DetailedActivity {
 
     public void setActivityId(int activityId) {
         this.activityId = activityId;
+    }
+
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+
+    public void setAdmin(boolean isAdmin) {
+        this.isAdmin = isAdmin;
     }
 }

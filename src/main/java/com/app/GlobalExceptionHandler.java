@@ -39,8 +39,8 @@ public class GlobalExceptionHandler {
 
         StringWriter sw = new StringWriter();
         e.printStackTrace(new PrintWriter(sw));
-        
         errordao.logError(e.getClass().getName(), e.getMessage(), sw.toString(), userId);
+
         BaseResponseDto response = new BaseResponseDto();
         response.getBody().put("message", "An Unknown Error Occured");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);

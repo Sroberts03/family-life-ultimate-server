@@ -47,11 +47,11 @@ public class FamilyService {
         familyDao.requestJoin(userId, familyId, role);
     }
 
-    public void createFamily(String userId, FamilyRole role) throws OwnerMustBeAdultException {
+    public void createFamily(String userId, FamilyRole role, String name) throws OwnerMustBeAdultException {
         if (role != FamilyRole.ADULT) {
             throw new OwnerMustBeAdultException();
         }
-        familyDao.createFamily(userId, role);
+        familyDao.createFamily(userId, role, name);
     }
 
     public void acceptOrDenyRequest(String userId, int requestId, boolean accept) throws Exception {

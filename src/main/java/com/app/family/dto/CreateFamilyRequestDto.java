@@ -5,7 +5,9 @@ import com.app.family.types.FamilyRole;
 
 public record CreateFamilyRequestDto(
     @NotNull
-    FamilyRole role
+    FamilyRole role,
+    @NotNull
+    String name
 ) {
     
 }

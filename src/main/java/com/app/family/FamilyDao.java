@@ -42,11 +42,13 @@ public class FamilyDao {
     }
 
     @Transactional
-    public void createFamily(String userId, FamilyRole role) {
-        String sql = "INSERT INTO families (owner_id) VALUES (?) RETURNING family_id";
-        UUID familyId = jdbcTemplate.queryForObject(sql, UUID.class, UUID.fromString(userId));
+    public void createFamily(String userId, FamilyRole role, String name) {
+        String sql = "INSERT INTO families (owner_id, family_name) VALUES (?, ?) RETURNING family_id";
+        UUID familyId = jdbcTemplate.queryForObject(sql, UUID.class, UUID.fromString(userId), name);
         String addUserSql = "INSERT INTO user_families (user_id, family_id, family_role) VALUES (?, ?, ?::family_role)";
         jdbcTemplate.update(addUserSql, UUID.fromString(userId), familyId, role.name().toLowerCase());
+        String addHouseholdHeadActivitySql = "INSERT INTO pers_activities (user_id, family_id, activity_id) VALUES (?, ?, (SELECT id FROM activities WHERE name = 'household_head'))";
+        jdbcTemplate.update(addHouseholdHeadActivitySql, UUID.fromString(userId), familyId);
     }
 
     public boolean requestExists(int requestId) {

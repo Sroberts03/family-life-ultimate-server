@@ -50,7 +50,7 @@ public class FamilyController {
         @RequestBody @Valid CreateFamilyRequestDto body,
         @AuthenticationPrincipal Jwt jwt
     ) throws OwnerMustBeAdultException {
-        familyService.createFamily(jwt.getSubject(), body.role());
+        familyService.createFamily(jwt.getSubject(), body.role(), body.name());
         BaseResponseDto response = new BaseResponseDto();
         response.getBody().put("message", "New family created successfully");
         return ResponseEntity.ok(response);
